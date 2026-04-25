@@ -1,5 +1,5 @@
 import {
-  ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid, Tooltip,
+  ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Legend,
 } from 'recharts';
 import type { PontoSerie } from '@/lib/calc';
@@ -7,9 +7,10 @@ import { fmtK } from '@/lib/calc';
 
 interface Props {
   serie: PontoSerie[];
+  benchmarkNome?: string;
 }
 
-export default function DualChart({ serie }: Props) {
+export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira' }: Props) {
   const yearMarks = Array.from({ length: Math.floor((serie.length - 1) / 12) }, (_, i) => (i + 1) * 12);
 
   return (
@@ -30,7 +31,7 @@ export default function DualChart({ serie }: Props) {
         />
         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
 
-        {/* Par 1: Valor do ativo vs aplicacao financeira corrigida (cada pagamento composto da data de desembolso) */}
+        {/* Par 1: Valor bruto — imóvel (dourado sólido) vs aplicação corrigida (azul sólido) */}
         <Line
           dataKey="valorImovel"
           stroke="#E0CA90"
@@ -40,29 +41,28 @@ export default function DualChart({ serie }: Props) {
         />
         <Line
           dataKey="valorAplicacao"
-          stroke="#7aa3d8"
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-          dot={false}
-          name="Aplicacao Financeira"
-        />
-
-        {/* Par 2: Posicao liquida imovel vs posicao liquida aplicacao financeira */}
-        <Area
-          dataKey="posicaoLiquida"
-          stroke="#6ecf8f"
-          fill="rgba(110,207,143,0.12)"
+          stroke="#60a5fa"
           strokeWidth={2}
           dot={false}
-          name="Pos. Liquida Imovel"
+          name={benchmarkNome}
         />
+
+        {/* Par 2: Resultado líquido — imóvel (dourado pontilhado) vs aplicação (azul pontilhado) */}
         <Line
-          dataKey="posicaoFinanceira"
-          stroke="#c084fc"
+          dataKey="posicaoLiquida"
+          stroke="#E0CA90"
           strokeWidth={1.5}
           strokeDasharray="6 3"
           dot={false}
-          name="Pos. Liquida Aplicacao"
+          name="Result. Liquido Imovel"
+        />
+        <Line
+          dataKey="posicaoFinanceira"
+          stroke="#93c5fd"
+          strokeWidth={1.5}
+          strokeDasharray="6 3"
+          dot={false}
+          name={`Result. Liquido ${benchmarkNome}`}
         />
       </ComposedChart>
     </ResponsiveContainer>

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import type { Cenario } from '@/types';
+import type { BenchmarkConfig } from '@/types';
 import { calcular, serieTemporal, fmt } from '@/lib/calc';
 import OverlayChart from '../charts/OverlayChart';
 import DualChart from '../charts/DualChart';
@@ -7,28 +8,32 @@ import DualChart from '../charts/DualChart';
 interface Props {
   cenarios: Cenario[];
   taxaVPL: number;
+  benchmark: BenchmarkConfig;
 }
 
-export default function DashboardTab({ cenarios, taxaVPL }: Props) {
+export default function DashboardTab({ cenarios, taxaVPL, benchmark }: Props) {
+  const benchmarkIR: 'regressiva' | number =
+    benchmark.tipo === 'rendaFixa' ? 'regressiva' : benchmark.aliquotaIR;
+
   const entries = useMemo(
     () => cenarios.map((c) => {
       const r = calcular(c, taxaVPL);
-      return { cenario: c, serie: serieTemporal(c, r, taxaVPL), lucroLiquido: r.lucroLiquido };
+      return { cenario: c, serie: serieTemporal(c, r, taxaVPL, benchmarkIR), lucroLiquido: r.lucroLiquido };
     }),
-    [cenarios, taxaVPL],
+    [cenarios, taxaVPL, benchmarkIR],
   );
 
   return (
     <div className="space-y-6">
       <div className="bg-akiva-surface border border-akiva-border rounded-lg p-5">
-        <h3 className="font-serif text-akiva-gold text-lg mb-1">Evolucao da Posicao Liquida</h3>
-        <p className="text-gray-500 text-xs mb-4">Patrimonio liquido projetado mes a mes comparando todos os cenarios.</p>
+        <h3 className="font-serif text-akiva-gold text-lg mb-1">Resultado Liquido Comparado</h3>
+        <p className="text-gray-500 text-xs mb-4">Resultado liquido projetado mes a mes — imovel vs benchmark — por cenario.</p>
         <OverlayChart entries={entries} dataKey="posicaoLiquida" />
       </div>
 
       <div className="bg-akiva-surface border border-akiva-border rounded-lg p-5">
-        <h3 className="font-serif text-akiva-gold text-lg mb-1">Aplicacao Financeira Corrigida</h3>
-        <p className="text-gray-500 text-xs mb-4">Valor total que cada desembolso teria acumulado se aplicado a taxa de referencia (custo de oportunidade).</p>
+        <h3 className="font-serif text-akiva-gold text-lg mb-1">{benchmark.nome} (custo de oportunidade)</h3>
+        <p className="text-gray-500 text-xs mb-4">Valor liquido acumulado do benchmark se os mesmos desembolsos fossem aplicados.</p>
         <OverlayChart entries={entries} dataKey="valorAplicacao" height={220} />
       </div>
 
@@ -44,13 +49,13 @@ export default function DashboardTab({ cenarios, taxaVPL }: Props) {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-gray-500 text-xs">Posicao Final</p>
+                <p className="text-gray-500 text-xs">Result. Liquido Final</p>
                 <p className={`font-semibold text-sm ${serie[serie.length - 1]?.posicaoLiquida >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {fmt(serie[serie.length - 1]?.posicaoLiquida ?? 0, 'moeda0')}
                 </p>
               </div>
             </div>
-            <DualChart serie={serie} />
+            <DualChart serie={serie} benchmarkNome={benchmark.nome} />
           </div>
         ))}
       </div>

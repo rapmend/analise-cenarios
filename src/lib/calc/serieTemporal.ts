@@ -25,7 +25,16 @@ function irRF(prazoMeses: number): number {
   return 0.150;
 }
 
-export function serieTemporal(c: Cenario, r: Resultado, taxaAplicacaoAnual: number): PontoSerie[] {
+/**
+ * @param benchmarkIR 'regressiva' = IR regressivo de renda fixa (tabela irRF);
+ *                    number = alíquota fixa (0–1) informada pelo usuário.
+ */
+export function serieTemporal(
+  c: Cenario,
+  r: Resultado,
+  taxaAplicacaoAnual: number,
+  benchmarkIR: 'regressiva' | number = 'regressiva',
+): PontoSerie[] {
   const n = Math.max(1, Math.round(c.periodoMeses));
   const valorizMensal = Math.pow(1 + c.valorizAnual, 1 / 12) - 1;
   const rm = Math.pow(1 + taxaAplicacaoAnual, 1 / 12) - 1;
@@ -87,7 +96,8 @@ export function serieTemporal(c: Cenario, r: Resultado, taxaAplicacaoAnual: numb
         const prazo = m - t;
         const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
         const ganho = grosso - pagamentoPorMes[t];
-        const irTranche = ganho > 0 ? ganho * irRF(prazo) : 0;
+        const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
+        const irTranche = ganho > 0 ? ganho * aliq : 0;
         valorAplicacao += grosso - irTranche;
       }
     }

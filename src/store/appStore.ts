@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { nanoid } from 'nanoid';
 import type { Cliente, Estudo, Cenario } from '@/types';
+import { BENCHMARK_DEFAULT } from '@/types';
 import {
   listClientes,
   saveCliente,
@@ -78,6 +79,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       nome,
       dataEmissao: now.slice(0, 10),
       taxaDescontoVPL: DEFAULT_TAXA_VPL,
+      benchmark: BENCHMARK_DEFAULT,
       cenarios: CENARIOS_INICIAIS.map((c) => ({ ...c, id: nanoid() })),
       criadoEm: now,
       atualizadoEm: now,

@@ -11,7 +11,8 @@ import DashboardTab from '@/features/analyzer/tabs/DashboardTab';
 import CompareTab from '@/features/analyzer/tabs/CompareTab';
 import CenarioTab from '@/features/analyzer/tabs/CenarioTab';
 import { printPdf } from '@/features/analyzer/pdf/printPdf';
-import type { Cenario } from '@/types';
+import type { Cenario, BenchmarkConfig } from '@/types';
+import { BENCHMARK_DEFAULT } from '@/types';
 
 const CENARIO_AVISTA_BASE: Omit<Cenario & { tipo: 'avista' }, 'id' | 'nome'> = {
   tipo: 'avista',
@@ -36,6 +37,9 @@ export default function EstudoAnalyzerPage() {
 
   const cliente = clientes.find((c) => c.id === clienteId);
   const estudo = clienteId ? estudosByCliente[clienteId]?.find((e) => e.id === estudoId) : undefined;
+
+  // benchmark com fallback para estudos antigos sem o campo
+  const benchmark: BenchmarkConfig = estudo?.benchmark ?? BENCHMARK_DEFAULT;
 
   const handleCenarioChange = useCallback((cenario: Cenario) => {
     if (!estudo) return;
@@ -63,6 +67,11 @@ export default function EstudoAnalyzerPage() {
     updateEstudo({ ...estudo, dataEmissao: v });
   }, [estudo, updateEstudo]);
 
+  const handleBenchmark = useCallback((patch: Partial<BenchmarkConfig>) => {
+    if (!estudo) return;
+    updateEstudo({ ...estudo, benchmark: { ...benchmark, ...patch } });
+  }, [estudo, benchmark, updateEstudo]);
+
   const handlePrint = useCallback(() => {
     if (!estudo || !cliente) return;
     printPdf(estudo, cliente.nome);
@@ -87,22 +96,20 @@ export default function EstudoAnalyzerPage() {
       ]}
     >
       {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
         <div className="flex-1 min-w-0">
           <h1 className="font-serif text-akiva-gold text-2xl font-medium truncate">{estudo.nome}</h1>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
             <span className="text-gray-400 text-xs whitespace-nowrap">Taxa VPL/TIR</span>
-            <div className="relative">
-              <Input
-                type="number"
-                step="0.5"
-                value={+(estudo.taxaDescontoVPL * 100).toFixed(2)}
-                onChange={(e) => handleTaxaVPL(parseFloat(e.target.value) / 100 || 0)}
-                className="bg-transparent border-none text-white text-sm w-16 p-0 focus-visible:ring-0 text-right [appearance:textfield]"
-              />
-            </div>
+            <Input
+              type="number"
+              step="0.5"
+              value={+(estudo.taxaDescontoVPL * 100).toFixed(2)}
+              onChange={(e) => handleTaxaVPL(parseFloat(e.target.value) / 100 || 0)}
+              className="bg-transparent border-none text-white text-sm w-16 p-0 focus-visible:ring-0 text-right [appearance:textfield]"
+            />
             <span className="text-gray-500 text-xs">% a.a.</span>
           </div>
           <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
@@ -123,6 +130,44 @@ export default function EstudoAnalyzerPage() {
             Gerar PDF
           </Button>
         </div>
+      </div>
+
+      {/* Benchmark (custo de oportunidade) */}
+      <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-akiva-surface border border-akiva-border rounded-lg">
+        <span className="text-gray-400 text-xs whitespace-nowrap">Benchmark:</span>
+        <Input
+          type="text"
+          value={benchmark.nome}
+          onChange={(e) => handleBenchmark({ nome: e.target.value })}
+          placeholder="Ex: CDB, CDI, Tesouro IPCA+"
+          className="bg-transparent border border-akiva-border text-white text-xs h-7 w-44 px-2 focus-visible:ring-0"
+        />
+        <select
+          value={benchmark.tipo}
+          onChange={(e) => handleBenchmark({ tipo: e.target.value as BenchmarkConfig['tipo'] })}
+          className="bg-akiva-navy border border-akiva-border text-gray-300 text-xs rounded px-2 h-7 focus:outline-none focus:border-akiva-gold/40"
+        >
+          <option value="rendaFixa">Renda Fixa (IR regressivo)</option>
+          <option value="outro">Outro benchmark</option>
+        </select>
+        {benchmark.tipo === 'outro' && (
+          <div className="flex items-center gap-1.5">
+            <span className="text-gray-500 text-xs">Aliq. IR</span>
+            <Input
+              type="number"
+              step="0.5"
+              min="0"
+              max="100"
+              value={+(benchmark.aliquotaIR * 100).toFixed(1)}
+              onChange={(e) => handleBenchmark({ aliquotaIR: parseFloat(e.target.value) / 100 || 0 })}
+              className="bg-transparent border border-akiva-border text-white text-xs h-7 w-14 px-2 focus-visible:ring-0 text-right [appearance:textfield]"
+            />
+            <span className="text-gray-500 text-xs">%</span>
+          </div>
+        )}
+        {benchmark.tipo === 'rendaFixa' && (
+          <span className="text-gray-600 text-xs">22,5% → 20% → 17,5% → 15% (sobre o lucro por prazo)</span>
+        )}
       </div>
 
       {/* Tabs */}
@@ -150,7 +195,7 @@ export default function EstudoAnalyzerPage() {
         </div>
 
         <TabsContent value="dashboard">
-          <DashboardTab cenarios={estudo.cenarios} taxaVPL={estudo.taxaDescontoVPL} />
+          <DashboardTab cenarios={estudo.cenarios} taxaVPL={estudo.taxaDescontoVPL} benchmark={benchmark} />
         </TabsContent>
 
         <TabsContent value="comparativo">
@@ -164,6 +209,7 @@ export default function EstudoAnalyzerPage() {
             <CenarioTab
               cenario={c}
               taxaVPL={estudo.taxaDescontoVPL}
+              benchmark={benchmark}
               onChange={handleCenarioChange}
               onRemove={() => handleCenarioRemove(c.id)}
               canRemove={estudo.cenarios.length > 1}

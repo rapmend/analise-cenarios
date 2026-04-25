@@ -41,12 +41,20 @@ export const CenarioParceladoSchema = z.object({
 
 export const CenarioSchema = z.discriminatedUnion('tipo', [CenarioAvistaSchema, CenarioParceladoSchema]);
 
+export const BenchmarkConfigSchema = z.object({
+  nome: z.string().default('Aplicacao Financeira'),
+  tipo: z.enum(['rendaFixa', 'outro']).default('rendaFixa'),
+  aliquotaIR: z.number().default(0.15),
+});
+
 export const EstudoSchema = z.object({
   id: z.string(),
   clienteId: z.string(),
   nome: z.string(),
   dataEmissao: z.string(),
   taxaDescontoVPL: z.number(),
+  // Campo opcional com default para retrocompatibilidade com estudos antigos
+  benchmark: BenchmarkConfigSchema.default({ nome: 'Aplicacao Financeira', tipo: 'rendaFixa', aliquotaIR: 0.15 }),
   cenarios: z.array(CenarioSchema),
   criadoEm: z.string(),
   atualizadoEm: z.string(),
