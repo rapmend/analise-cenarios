@@ -13,7 +13,7 @@ export default function DualChart({ serie }: Props) {
   const yearMarks = Array.from({ length: Math.floor((serie.length - 1) / 12) }, (_, i) => (i + 1) * 12);
 
   return (
-    <ResponsiveContainer width="100%" height={200}>
+    <ResponsiveContainer width="100%" height={240}>
       <ComposedChart data={serie} margin={{ top: 8, right: 16, left: 8, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#1a3a5c" />
         <XAxis
@@ -29,9 +29,41 @@ export default function DualChart({ serie }: Props) {
           contentStyle={{ background: '#0a1f38', border: '1px solid #1a3a5c', fontSize: 12, color: '#e8edf5' }}
         />
         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-        <Line dataKey="valorImovel" stroke="#E0CA90" strokeWidth={2} dot={false} name="Valor do Imovel" />
-        <Line dataKey="capitalAplicado" stroke="#7aa3d8" strokeWidth={1.5} strokeDasharray="4 3" dot={false} name="Capital Aplicado" />
-        <Area dataKey="posicaoLiquida" stroke="#6ecf8f" fill="rgba(110,207,143,0.15)" strokeWidth={1.5} dot={false} name="Posicao Liquida" />
+
+        {/* Par 1: Valor do ativo vs capital desembolsado */}
+        <Line
+          dataKey="valorImovel"
+          stroke="#E0CA90"
+          strokeWidth={2}
+          dot={false}
+          name="Valor do Imovel"
+        />
+        <Line
+          dataKey="capitalAplicado"
+          stroke="#7aa3d8"
+          strokeWidth={1.5}
+          strokeDasharray="4 3"
+          dot={false}
+          name="Capital Acumulado"
+        />
+
+        {/* Par 2: Posicao liquida imovel vs posicao liquida aplicacao financeira */}
+        <Area
+          dataKey="posicaoLiquida"
+          stroke="#6ecf8f"
+          fill="rgba(110,207,143,0.12)"
+          strokeWidth={2}
+          dot={false}
+          name="Pos. Liquida Imovel"
+        />
+        <Line
+          dataKey="posicaoFinanceira"
+          stroke="#c084fc"
+          strokeWidth={1.5}
+          strokeDasharray="6 3"
+          dot={false}
+          name="Pos. Liquida Aplicacao"
+        />
       </ComposedChart>
     </ResponsiveContainer>
   );

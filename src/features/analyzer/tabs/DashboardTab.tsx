@@ -13,7 +13,7 @@ export default function DashboardTab({ cenarios, taxaVPL }: Props) {
   const entries = useMemo(
     () => cenarios.map((c) => {
       const r = calcular(c, taxaVPL);
-      return { cenario: c, serie: serieTemporal(c, r), lucroLiquido: r.lucroLiquido };
+      return { cenario: c, serie: serieTemporal(c, r, taxaVPL), lucroLiquido: r.lucroLiquido };
     }),
     [cenarios, taxaVPL],
   );

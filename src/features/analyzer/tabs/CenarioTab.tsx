@@ -17,7 +17,7 @@ interface Props {
 
 export default function CenarioTab({ cenario, taxaVPL, onChange, onRemove, canRemove }: Props) {
   const resultado: Resultado = useMemo(() => calcular(cenario, taxaVPL), [cenario, taxaVPL]);
-  const serie = useMemo(() => serieTemporal(cenario, resultado), [cenario, resultado]);
+  const serie = useMemo(() => serieTemporal(cenario, resultado, taxaVPL), [cenario, resultado, taxaVPL]);
 
   return (
     <div className="space-y-4">
