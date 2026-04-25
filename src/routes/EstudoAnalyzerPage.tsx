@@ -132,9 +132,9 @@ export default function EstudoAnalyzerPage() {
         </div>
       </div>
 
-      {/* Benchmark (custo de oportunidade) */}
-      <div className="flex flex-wrap items-center gap-2 mb-6 p-3 bg-akiva-surface border border-akiva-border rounded-lg">
-        <span className="text-gray-400 text-xs whitespace-nowrap">Benchmark:</span>
+      {/* Custo de oportunidade */}
+      <div className="inline-flex flex-wrap items-center gap-2 mb-6 px-3 py-2 bg-akiva-surface border border-akiva-border rounded-lg">
+        <span className="text-gray-400 text-xs whitespace-nowrap">Custo de oportunidade:</span>
         <Input
           type="text"
           value={benchmark.nome}
