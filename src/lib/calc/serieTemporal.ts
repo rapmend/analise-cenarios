@@ -7,6 +7,9 @@ export interface PontoSerie {
   capitalAplicado: number;
   posicaoLiquida: number;
   patrimonio: number;
+  /** Valor total corrigido da aplicação financeira (cada pagamento composto da data de desembolso até o mês m) */
+  valorAplicacao: number;
+  /** Ganho líquido da aplicação financeira = valorAplicacao − capitalAplicado (nominal) */
   posicaoFinanceira: number;
 }
 
@@ -60,17 +63,18 @@ export function serieTemporal(c: Cenario, r: Resultado, taxaAplicacaoAnual: numb
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Posição financeira: cada pagamento feito até o mês m composto à taxa de aplicação
-    let posicaoFinanceira = 0;
+    // Valor total corrigido da aplicação financeira:
+    // cada pagamento composto da data de desembolso até o mês m
+    let valorAplicacao = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
-        posicaoFinanceira += pagamentoPorMes[t] * Math.pow(1 + rm, m - t);
+        valorAplicacao += pagamentoPorMes[t] * Math.pow(1 + rm, m - t);
       }
     }
-    // Posição líquida financeira = valor acumulado da aplicação - capital aplicado
-    posicaoFinanceira = posicaoFinanceira - capitalAplicado;
+    // Posição líquida financeira = valor corrigido − capital nominal pago
+    const posicaoFinanceira = valorAplicacao - capitalAplicado;
 
-    serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, posicaoFinanceira });
+    serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, valorAplicacao, posicaoFinanceira });
   }
   return serie;
 }

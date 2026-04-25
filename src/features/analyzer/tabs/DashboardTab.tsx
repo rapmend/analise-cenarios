@@ -27,9 +27,9 @@ export default function DashboardTab({ cenarios, taxaVPL }: Props) {
       </div>
 
       <div className="bg-akiva-surface border border-akiva-border rounded-lg p-5">
-        <h3 className="font-serif text-akiva-gold text-lg mb-1">Capital Aplicado ao Longo do Tempo</h3>
-        <p className="text-gray-500 text-xs mb-4">Desembolso acumulado por cenario.</p>
-        <OverlayChart entries={entries} dataKey="capitalAplicado" height={220} />
+        <h3 className="font-serif text-akiva-gold text-lg mb-1">Aplicacao Financeira Corrigida</h3>
+        <p className="text-gray-500 text-xs mb-4">Valor total que cada desembolso teria acumulado se aplicado a taxa de referencia (custo de oportunidade).</p>
+        <OverlayChart entries={entries} dataKey="valorAplicacao" height={220} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

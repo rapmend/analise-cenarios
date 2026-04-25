@@ -30,7 +30,7 @@ export default function DualChart({ serie }: Props) {
         />
         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
 
-        {/* Par 1: Valor do ativo vs capital desembolsado */}
+        {/* Par 1: Valor do ativo vs aplicacao financeira corrigida (cada pagamento composto da data de desembolso) */}
         <Line
           dataKey="valorImovel"
           stroke="#E0CA90"
@@ -39,12 +39,12 @@ export default function DualChart({ serie }: Props) {
           name="Valor do Imovel"
         />
         <Line
-          dataKey="capitalAplicado"
+          dataKey="valorAplicacao"
           stroke="#7aa3d8"
           strokeWidth={1.5}
           strokeDasharray="4 3"
           dot={false}
-          name="Capital Acumulado"
+          name="Aplicacao Financeira"
         />
 
         {/* Par 2: Posicao liquida imovel vs posicao liquida aplicacao financeira */}
