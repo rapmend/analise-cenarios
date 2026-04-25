@@ -47,6 +47,7 @@ export default function OverlayChart({ entries, dataKey, height = 260 }: Props) 
             return [fmtK(v as number), entry?.cenario.nome ?? String(key)];
           }}
           labelFormatter={(l) => `Mes ${l}`}
+          itemSorter={(item) => -(item.value as number)}
           contentStyle={{ background: '#0a1f38', border: '1px solid #1a3a5c', fontSize: 12, color: '#e8edf5' }}
         />
         <Legend

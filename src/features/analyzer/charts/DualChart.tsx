@@ -27,6 +27,7 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
         <Tooltip
           formatter={(v, name) => [fmtK(v as number), name]}
           labelFormatter={(l) => `Mes ${l}`}
+          itemSorter={(item) => -(item.value as number)}
           contentStyle={{ background: '#0a1f38', border: '1px solid #1a3a5c', fontSize: 12, color: '#e8edf5' }}
         />
         <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
