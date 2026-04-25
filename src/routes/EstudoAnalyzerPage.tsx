@@ -148,7 +148,8 @@ export default function EstudoAnalyzerPage() {
           className="bg-akiva-navy border border-akiva-border text-gray-300 text-xs rounded px-2 h-7 focus:outline-none focus:border-akiva-gold/40"
         >
           <option value="rendaFixa">Renda Fixa (IR regressivo)</option>
-          <option value="outro">Outro benchmark</option>
+          <option value="outro">Outro IR</option>
+          <option value="isento">Isento de IR</option>
         </select>
         {benchmark.tipo === 'outro' && (
           <div className="flex items-center gap-1.5">
@@ -166,7 +167,10 @@ export default function EstudoAnalyzerPage() {
           </div>
         )}
         {benchmark.tipo === 'rendaFixa' && (
-          <span className="text-gray-600 text-xs">22,5% → 20% → 17,5% → 15% (sobre o lucro por prazo)</span>
+          <span className="text-gray-600 text-xs">22,5% → 20% → 17,5% → 15% sobre o lucro</span>
+        )}
+        {benchmark.tipo === 'isento' && (
+          <span className="text-gray-600 text-xs">Sem incidencia de IR</span>
         )}
       </div>
 
@@ -181,7 +185,7 @@ export default function EstudoAnalyzerPage() {
               Comparativo
             </TabsTrigger>
             {cenarioTabs.map((t) => (
-              <TabsTrigger key={t.id} value={t.id} className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs max-w-32 truncate">
+              <TabsTrigger key={t.id} value={t.id} className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs whitespace-nowrap">
                 {t.label}
               </TabsTrigger>
             ))}

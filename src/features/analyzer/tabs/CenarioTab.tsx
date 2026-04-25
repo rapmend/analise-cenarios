@@ -18,7 +18,9 @@ interface Props {
 
 export default function CenarioTab({ cenario, taxaVPL, benchmark, onChange, onRemove, canRemove }: Props) {
   const benchmarkIR: 'regressiva' | number =
-    benchmark.tipo === 'rendaFixa' ? 'regressiva' : benchmark.aliquotaIR;
+    benchmark.tipo === 'rendaFixa' ? 'regressiva' :
+    benchmark.tipo === 'isento'    ? 0 :
+    benchmark.aliquotaIR;
 
   const resultado: Resultado = useMemo(() => calcular(cenario, taxaVPL), [cenario, taxaVPL]);
   const serie = useMemo(

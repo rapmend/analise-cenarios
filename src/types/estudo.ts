@@ -1,13 +1,13 @@
 import type { Cenario } from './cenario';
 
-export type BenchmarkTipo = 'rendaFixa' | 'outro';
+export type BenchmarkTipo = 'rendaFixa' | 'outro' | 'isento';
 
 export interface BenchmarkConfig {
   /** Nome exibido nos gráficos e labels (ex: "CDB", "CDI", "Tesouro IPCA+") */
   nome: string;
-  /** rendaFixa = IR regressivo (22,5% → 15%); outro = alíquota fixa informada pelo usuário */
+  /** rendaFixa = IR regressivo (22,5% → 15%); outro = alíquota fixa; isento = sem IR */
   tipo: BenchmarkTipo;
-  /** Alíquota flat (0–1) usada quando tipo='outro'. Ignorada para rendaFixa. */
+  /** Alíquota flat (0–1) usada quando tipo='outro'. Ignorada para rendaFixa e isento. */
   aliquotaIR: number;
 }
 

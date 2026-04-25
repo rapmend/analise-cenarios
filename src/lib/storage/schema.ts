@@ -43,7 +43,7 @@ export const CenarioSchema = z.discriminatedUnion('tipo', [CenarioAvistaSchema, 
 
 export const BenchmarkConfigSchema = z.object({
   nome: z.string().default('Aplicacao Financeira'),
-  tipo: z.enum(['rendaFixa', 'outro']).default('rendaFixa'),
+  tipo: z.enum(['rendaFixa', 'outro', 'isento']).default('rendaFixa'),
   aliquotaIR: z.number().default(0.15),
 });
 

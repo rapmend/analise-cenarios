@@ -13,7 +13,9 @@ interface Props {
 
 export default function DashboardTab({ cenarios, taxaVPL, benchmark }: Props) {
   const benchmarkIR: 'regressiva' | number =
-    benchmark.tipo === 'rendaFixa' ? 'regressiva' : benchmark.aliquotaIR;
+    benchmark.tipo === 'rendaFixa' ? 'regressiva' :
+    benchmark.tipo === 'isento'    ? 0 :
+    benchmark.aliquotaIR;
 
   const entries = useMemo(
     () => cenarios.map((c) => {
