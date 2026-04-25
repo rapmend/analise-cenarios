@@ -7,10 +7,22 @@ export interface PontoSerie {
   capitalAplicado: number;
   posicaoLiquida: number;
   patrimonio: number;
-  /** Valor total corrigido da aplicação financeira (cada pagamento composto da data de desembolso até o mês m) */
+  /** Valor total líquido (após IR regressivo) da aplicação financeira no mês m */
   valorAplicacao: number;
   /** Ganho líquido da aplicação financeira = valorAplicacao − capitalAplicado (nominal) */
   posicaoFinanceira: number;
+}
+
+/**
+ * Alíquota de IR regressivo de renda fixa conforme prazo de aplicação (em meses).
+ * Até 6m: 22,5% · 7-12m: 20% · 13-24m: 17,5% · acima de 24m: 15%
+ * Imposto incide apenas sobre o lucro (ganho) da tranche.
+ */
+function irRF(prazoMeses: number): number {
+  if (prazoMeses <= 6) return 0.225;
+  if (prazoMeses <= 12) return 0.200;
+  if (prazoMeses <= 24) return 0.175;
+  return 0.150;
 }
 
 export function serieTemporal(c: Cenario, r: Resultado, taxaAplicacaoAnual: number): PontoSerie[] {
@@ -63,15 +75,23 @@ export function serieTemporal(c: Cenario, r: Resultado, taxaAplicacaoAnual: numb
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Valor total corrigido da aplicação financeira:
-    // cada pagamento composto da data de desembolso até o mês m
+    // Valor líquido (após IR regressivo) da aplicação financeira no mês m.
+    // Cada pagamento (tranche) é avaliado individualmente:
+    //   grosso  = principal × (1+rm)^prazo
+    //   ganho   = grosso − principal
+    //   IR      = ganho > 0 ? ganho × irRF(prazo) : 0
+    //   líquido = grosso − IR
     let valorAplicacao = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
-        valorAplicacao += pagamentoPorMes[t] * Math.pow(1 + rm, m - t);
+        const prazo = m - t;
+        const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
+        const ganho = grosso - pagamentoPorMes[t];
+        const irTranche = ganho > 0 ? ganho * irRF(prazo) : 0;
+        valorAplicacao += grosso - irTranche;
       }
     }
-    // Posição líquida financeira = valor corrigido − capital nominal pago
+    // Posição líquida financeira = valor líquido − capital nominal pago
     const posicaoFinanceira = valorAplicacao - capitalAplicado;
 
     serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, valorAplicacao, posicaoFinanceira });
