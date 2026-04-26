@@ -84,21 +84,24 @@ export function serieTemporal(
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Valor líquido (após IR regressivo) da aplicação financeira no mês m.
-    // Cada pagamento (tranche) é avaliado individualmente:
-    //   grosso  = principal × (1+rm)^prazo
-    //   ganho   = grosso − principal
-    //   IR      = ganho > 0 ? ganho × irRF(prazo) : 0
-    //   líquido = grosso − IR
+    // Valor da aplicação financeira no mês m.
+    // Durante a operação (m < n): valor BRUTO compostado (sem IR — investidor não resgatou ainda).
+    // No mês final (m === n): IR é aplicado por tranche, sobre o lucro de cada tranche,
+    //   considerando o prazo total que cada tranche ficou aplicada (n − t).
+    const isFinal = m === n;
     let valorAplicacao = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
         const prazo = m - t;
         const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
-        const ganho = grosso - pagamentoPorMes[t];
-        const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
-        const irTranche = ganho > 0 ? ganho * aliq : 0;
-        valorAplicacao += grosso - irTranche;
+        if (isFinal) {
+          const ganho = grosso - pagamentoPorMes[t];
+          const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
+          const irTranche = ganho > 0 ? ganho * aliq : 0;
+          valorAplicacao += grosso - irTranche;
+        } else {
+          valorAplicacao += grosso;
+        }
       }
     }
     // Posição líquida financeira = valor líquido − capital nominal pago
