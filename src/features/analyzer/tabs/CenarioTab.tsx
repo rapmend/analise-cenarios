@@ -39,7 +39,7 @@ export default function CenarioTab({ cenario, taxaVPL, benchmark, onChange, onRe
             <p className="text-gray-400 text-xs font-medium uppercase tracking-wider mb-3">Cronograma de Pagamentos</p>
             <CronogramaChart parcelas={resultado.parcelas} periodoMeses={cenario.periodoMeses} />
           </div>
-          <ParcelasTable parcelas={resultado.parcelas} />
+          <ParcelasTable parcelas={resultado.parcelas} serie={serie} benchmarkNome={benchmark.nome} />
         </>
       )}
 
