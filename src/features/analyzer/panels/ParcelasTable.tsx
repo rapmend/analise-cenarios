@@ -49,7 +49,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome }: Props)
               <tr className="border-b border-akiva-border">
                 <th rowSpan={2} className="px-4 py-2 text-left text-gray-400 font-medium align-bottom">Mês</th>
                 <th rowSpan={2} className="px-4 py-2 text-left text-gray-400 font-medium align-bottom">Tipo</th>
-                <th colSpan={3} className="px-4 py-1 text-center text-akiva-gold/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60">
+                <th colSpan={4} className="px-4 py-1 text-center text-akiva-gold/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60">
                   Imóvel
                 </th>
                 {showBenchmark && (
@@ -59,7 +59,8 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome }: Props)
                 )}
               </tr>
               <tr>
-                <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60">Valor</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor do imovel corrigido pela valorizacao mensal composta">Valor Imovel</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium">Parcela</th>
                 <th className="px-4 py-2 text-right text-gray-400 font-medium">Acumulado</th>
                 <th className="px-4 py-2 text-right text-gray-400 font-medium">Saldo Devedor</th>
                 {showBenchmark && (
@@ -78,7 +79,8 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome }: Props)
                   <tr key={i} className="hover:bg-akiva-surface/30 transition-colors">
                     <td className="px-4 py-1.5 text-gray-300">{p.mes === 0 ? 'M0' : `M${p.mes}`}</td>
                     <td className={`px-4 py-1.5 font-medium ${TIPO_COLOR[p.tipo]}`}>{TIPO_LABEL[p.tipo]}</td>
-                    <td className="px-4 py-1.5 text-right text-white border-l border-akiva-border/60">{fmt(p.valor, 'moeda')}</td>
+                    <td className="px-4 py-1.5 text-right text-akiva-gold/90 border-l border-akiva-border/60">{ponto ? fmt(ponto.valorImovel, 'moeda') : '--'}</td>
+                    <td className="px-4 py-1.5 text-right text-white">{fmt(p.valor, 'moeda')}</td>
                     <td className="px-4 py-1.5 text-right text-gray-300">{fmt(p.acumulado, 'moeda')}</td>
                     <td className="px-4 py-1.5 text-right text-gray-400">{p.saldoApos > 0.005 ? fmt(p.saldoApos, 'moeda') : '--'}</td>
                     {showBenchmark && (
