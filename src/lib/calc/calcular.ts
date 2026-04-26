@@ -55,10 +55,10 @@ export function calcular(c: Cenario, taxaDescontoVPL: number): Resultado {
     };
   }
 
-  // Parcelado
-  const n = Math.max(1, Math.round(c.periodoMeses));
-  const tObra = Math.max(1, Math.round(c.tempoObra));
-  const i = c.taxaIndexador;
+  // Parcelado — sanitiza inputs (NaN/empty/0 viram defaults seguros)
+  const n = Math.max(1, Math.round(c.periodoMeses) || 1);
+  const tObra = Math.max(1, Math.min(n, Math.round(c.tempoObra) || 1));
+  const i = Number.isFinite(c.taxaIndexador) ? c.taxaIndexador : 0;
   const pEnt = Math.max(0, Math.min(1, c.pctEntrada));
   const pObr = Math.max(0, Math.min(1 - pEnt, c.pctObra));
   const pChv = Math.max(0, 1 - pEnt - pObr);

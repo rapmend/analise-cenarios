@@ -63,6 +63,26 @@ function PctInput({ value, onChange, label, readOnly }: { value: number; onChang
   );
 }
 
+function IntInput({ value, onChange, label, min = 1 }: { value: number; onChange: (v: number) => void; label: string; min?: number }) {
+  const safeValue = Number.isFinite(value) && value >= min ? Math.round(value) : min;
+  return (
+    <div className="space-y-1">
+      <Label className="text-gray-400 text-xs">{label}</Label>
+      <Input
+        type="number"
+        step="1"
+        min={min}
+        value={safeValue}
+        onChange={(e) => {
+          const n = parseInt(e.target.value, 10);
+          onChange(Number.isFinite(n) && n >= min ? n : min);
+        }}
+        className="bg-akiva-navy border-akiva-border text-white text-sm focus:border-akiva-gold [appearance:textfield]"
+      />
+    </div>
+  );
+}
+
 function MoneyInput({ value, onChange, label }: { value: number; onChange: (v: number) => void; label: string }) {
   return (
     <div className="space-y-1">
@@ -163,10 +183,11 @@ export default function CenarioForm({ cenario, onChange, onRemove, canRemove }: 
         />
       </div>
       <div className={row3}>
-        <div className="space-y-1">
-          <Label className="text-gray-400 text-xs">Periodo (meses)</Label>
-          <Input type="number" step="1" {...register('periodoMeses', { valueAsNumber: true })} className="bg-akiva-navy border-akiva-border text-white text-sm focus:border-akiva-gold [appearance:textfield]" />
-        </div>
+        <IntInput
+          label="Periodo (meses)"
+          value={watch('periodoMeses')}
+          onChange={(v) => { setValue('periodoMeses', v, { shouldDirty: true }); onChange({ ...cenario, periodoMeses: v } as Cenario); }}
+        />
         <PctInput label="Corretagem" value={watch('corretagem')} onChange={(v) => { setValue('corretagem', v); onChange({ ...cenario, corretagem: v } as Cenario); }} />
         <PctInput label="IR sobre Lucro" value={watch('ir')} onChange={(v) => { setValue('ir', v); onChange({ ...cenario, ir: v } as Cenario); }} />
       </div>
@@ -211,15 +232,14 @@ export default function CenarioForm({ cenario, onChange, onRemove, canRemove }: 
               onChange={(v) => { (setValue as (k: string, v: unknown) => void)('taxaIndexador', v); onChange({ ...cenario, taxaIndexador: v } as CenarioParcelado); }}
             />
           </div>
-          <div className="space-y-1">
-            <Label className="text-gray-400 text-xs">Tempo de Obra (meses)</Label>
-            <Input
-              type="number"
-              step="1"
-              {...(register as (k: string, opts?: unknown) => unknown)('tempoObra', { valueAsNumber: true }) as object}
-              className="bg-akiva-navy border-akiva-border text-white text-sm focus:border-akiva-gold [appearance:textfield]"
-            />
-          </div>
+          <IntInput
+            label="Tempo de Obra (meses)"
+            value={watchNum('tempoObra')}
+            onChange={(v) => {
+              (setValue as (k: string, val: unknown, opts?: unknown) => void)('tempoObra', v, { shouldDirty: true });
+              onChange({ ...cenario, tempoObra: v } as CenarioParcelado);
+            }}
+          />
           <div className={row3}>
             <PctInput
               label="Entrada"
