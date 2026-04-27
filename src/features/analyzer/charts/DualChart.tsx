@@ -48,14 +48,14 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
           name={benchmarkNome}
         />
 
-        {/* Par 2: Resultado líquido — imóvel (dourado pontilhado) vs aplicação (azul pontilhado) */}
+        {/* Par 2: Lucro bruto — imóvel (dourado pontilhado) vs aplicação (azul pontilhado) */}
         <Line
           dataKey="posicaoLiquida"
           stroke="#E0CA90"
           strokeWidth={1.5}
           strokeDasharray="6 3"
           dot={false}
-          name="Result. Liquido Imovel"
+          name="Lucro Bruto Imovel"
         />
         <Line
           dataKey="posicaoFinanceira"
@@ -63,7 +63,7 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
           strokeWidth={1.5}
           strokeDasharray="6 3"
           dot={false}
-          name={`Result. Liquido ${benchmarkNome}`}
+          name={`Lucro Bruto ${benchmarkNome}`}
         />
       </ComposedChart>
     </ResponsiveContainer>

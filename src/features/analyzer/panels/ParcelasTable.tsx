@@ -54,20 +54,22 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
 
   const handleExport = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const headerGroup = ['', '', 'Imóvel', '', '', '', ...(showBenchmark ? [benchmarkNome ?? '', ''] : [])];
+    const headerGroup = ['', '', 'Imóvel', '', '', '', '', ...(showBenchmark ? [benchmarkNome ?? '', ''] : [])];
     const headerCols = [
-      'Mês', 'Tipo', 'Valor Imóvel', 'Parcela', 'Acumulado', 'Saldo Devedor',
-      ...(showBenchmark ? ['Acumulado Aplicação', 'Líquido Aplicação'] : []),
+      'Mês', 'Tipo',
+      'Vr. Parcela', 'Pagto Acumulado', 'Valor Imóvel', 'Saldo Devedor Imóvel', 'Saldo Líquido Imóvel',
+      ...(showBenchmark ? ['Acumulado Aplicação', 'Lucro Bruto Aplicação'] : []),
     ];
     const rows = parcelas.map((p) => {
       const pt = serie?.[p.mes];
       return [
         p.mes === 0 ? 'M0' : `M${p.mes}`,
         TIPO_LABEL[p.tipo] ?? p.tipo,
-        pt ? csvNum(pt.valorImovel) : '',
         csvNum(p.valor),
         csvNum(p.acumulado),
+        pt ? csvNum(pt.valorImovel) : '',
         p.saldoApos > 0.005 ? csvNum(p.saldoApos) : '',
+        pt ? csvNum(pt.patrimonio) : '',
         ...(showBenchmark ? [pt ? csvNum(pt.valorAplicacao) : '', pt ? csvNum(pt.posicaoFinanceira) : ''] : []),
       ];
     });
@@ -117,24 +119,25 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
               <tr className="border-b border-akiva-border">
                 <th rowSpan={2} className="px-4 py-2 text-left text-gray-400 font-medium align-bottom">Mês</th>
                 <th rowSpan={2} className="px-4 py-2 text-left text-gray-400 font-medium align-bottom">Tipo</th>
-                <th colSpan={4} className="px-4 py-1 text-center text-akiva-gold/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60">
+                <th colSpan={5} className="px-4 py-1 text-center text-akiva-gold/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60">
                   Imóvel
                 </th>
                 {showBenchmark && (
-                  <th colSpan={2} className="px-4 py-1 text-center text-blue-300/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60" title="Custo de oportunidade no benchmark configurado (IR aplicado apenas no mês final)">
+                  <th colSpan={2} className="px-4 py-1 text-center text-blue-300/80 font-medium uppercase tracking-wider text-[10px] border-l border-akiva-border/60" title="Custo de oportunidade no benchmark configurado (valor bruto, sem IR)">
                     {benchmarkNome}
                   </th>
                 )}
               </tr>
               <tr>
-                <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor do imovel corrigido pela valorizacao mensal composta">Valor Imovel</th>
-                <th className="px-4 py-2 text-right text-gray-400 font-medium">Parcela</th>
-                <th className="px-4 py-2 text-right text-gray-400 font-medium">Acumulado</th>
-                <th className="px-4 py-2 text-right text-gray-400 font-medium">Saldo Devedor</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor do desembolso da parcela no mês">Vr. Parcela</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Soma nominal de todos os pagamentos feitos até o mês">Pagto Acumulado</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Valor do imóvel corrigido pela valorização mensal composta">Valor Imóvel</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Saldo devedor do contrato após o pagamento">Saldo Devedor Imóvel</th>
+                <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Valor Imóvel − corretagem − saldo devedor − IR sobre lucro imobiliário">Saldo Líquido Imóvel</th>
                 {showBenchmark && (
                   <>
-                    <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor bruto compostado durante a operação; já com IR no mês final">Acumulado</th>
-                    <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Acumulado − capital nominal pago = ganho líquido da aplicação">Líquido</th>
+                    <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor bruto compostado da aplicação no mês">Acumulado</th>
+                    <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Acumulado − capital nominal pago = lucro bruto da aplicação">Lucro Bruto</th>
                   </>
                 )}
               </tr>
@@ -147,10 +150,11 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
                   <tr key={i} className="hover:bg-akiva-surface/30 transition-colors">
                     <td className="px-4 py-1.5 text-gray-300">{p.mes === 0 ? 'M0' : `M${p.mes}`}</td>
                     <td className={`px-4 py-1.5 font-medium ${TIPO_COLOR[p.tipo]}`}>{TIPO_LABEL[p.tipo]}</td>
-                    <td className="px-4 py-1.5 text-right text-akiva-gold/90 border-l border-akiva-border/60">{ponto ? fmt(ponto.valorImovel, 'moeda') : '--'}</td>
-                    <td className="px-4 py-1.5 text-right text-white">{fmt(p.valor, 'moeda')}</td>
+                    <td className="px-4 py-1.5 text-right text-white border-l border-akiva-border/60">{fmt(p.valor, 'moeda')}</td>
                     <td className="px-4 py-1.5 text-right text-gray-300">{fmt(p.acumulado, 'moeda')}</td>
+                    <td className="px-4 py-1.5 text-right text-akiva-gold/90">{ponto ? fmt(ponto.valorImovel, 'moeda') : '--'}</td>
                     <td className="px-4 py-1.5 text-right text-gray-400">{p.saldoApos > 0.005 ? fmt(p.saldoApos, 'moeda') : '--'}</td>
+                    <td className={`px-4 py-1.5 text-right ${ponto && ponto.patrimonio - p.acumulado >= 0 ? 'text-green-400/90' : 'text-akiva-gold/90'}`}>{ponto ? fmt(ponto.patrimonio, 'moeda') : '--'}</td>
                     {showBenchmark && (
                       <>
                         <td className="px-4 py-1.5 text-right text-blue-300 border-l border-akiva-border/60">

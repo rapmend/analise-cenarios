@@ -28,8 +28,8 @@ export default function DashboardTab({ cenarios, taxaVPL, benchmark }: Props) {
   return (
     <div className="space-y-6">
       <div className="bg-akiva-surface border border-akiva-border rounded-lg p-5">
-        <h3 className="font-serif text-akiva-gold text-lg mb-1">Resultado Liquido Comparado</h3>
-        <p className="text-gray-500 text-xs mb-4">Resultado liquido projetado mes a mes — imovel vs benchmark — por cenario.</p>
+        <h3 className="font-serif text-akiva-gold text-lg mb-1">Lucro Bruto Comparado</h3>
+        <p className="text-gray-500 text-xs mb-4">Lucro bruto projetado mes a mes — imovel vs benchmark — por cenario.</p>
         <OverlayChart entries={entries} dataKey="posicaoLiquida" />
       </div>
 
@@ -51,7 +51,7 @@ export default function DashboardTab({ cenarios, taxaVPL, benchmark }: Props) {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-gray-500 text-xs">Result. Liquido Final</p>
+                <p className="text-gray-500 text-xs">Lucro Bruto Final</p>
                 <p className={`font-semibold text-sm ${serie[serie.length - 1]?.posicaoLiquida >= 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {fmt(serie[serie.length - 1]?.posicaoLiquida ?? 0, 'moeda0')}
                 </p>
