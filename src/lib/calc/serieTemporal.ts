@@ -91,20 +91,26 @@ export function serieTemporal(
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Trilha BRUTA: capitalização contínua sem IR. IR só seria pago na realização (resgate);
-    // não antecipar IR preserva a base de juro composto como ocorre na prática.
-    // Trilha LÍQUIDA: para visualização "se resgatasse neste mês", IR por tranche conforme prazo.
+    // Trilha BRUTA: capitalização contínua sem IR (IR só na realização — preserva juro composto).
+    // Trilha LÍQUIDA: durante o período, igual à bruta (não antecipa IR — afinal o resgate
+    // ocorre apenas ao fim do projeto). No mês final (m === n) aplica IR por tranche, com a
+    // alíquota correspondente ao prazo total de cada aporte ate o resgate (n − t).
+    const isFinal = m === n;
     let valorAplicacao = 0;
     let valorAplicacaoLiq = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
         const prazo = m - t;
         const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
-        const ganho = grosso - pagamentoPorMes[t];
-        const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
-        const irTranche = ganho > 0 ? ganho * aliq : 0;
         valorAplicacao += grosso;
-        valorAplicacaoLiq += grosso - irTranche;
+        if (isFinal) {
+          const ganho = grosso - pagamentoPorMes[t];
+          const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
+          const irTranche = ganho > 0 ? ganho * aliq : 0;
+          valorAplicacaoLiq += grosso - irTranche;
+        } else {
+          valorAplicacaoLiq += grosso;
+        }
       }
     }
     const posicaoFinanceira = valorAplicacao - capitalAplicado;

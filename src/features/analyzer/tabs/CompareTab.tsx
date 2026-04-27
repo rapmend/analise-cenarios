@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Cenario, Resultado } from '@/types';
-import { calcular, fmt } from '@/lib/calc';
+import { calcular, fmt, GLOSSARIO } from '@/lib/calc';
 import { ChevronDownIcon, ChevronUpIcon } from '@radix-ui/react-icons';
 
 interface Props {
@@ -108,6 +108,7 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
     [cenarios, taxaVPL],
   );
   const [memoriaOpen, setMemoriaOpen] = useState(false);
+  const [glossarioOpen, setGlossarioOpen] = useState(false);
 
   return (
     <div className="overflow-x-auto">
@@ -159,6 +160,31 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
         </tbody>
       </table>
       <p className="text-gray-600 text-xs px-4 py-3">★ Melhor valor entre os cenarios para esse indicador.</p>
+
+      <div className="border-t border-akiva-border">
+        <button
+          onClick={() => setGlossarioOpen((v) => !v)}
+          className="w-full flex items-center justify-between px-4 py-3 hover:bg-akiva-surface/50 transition-colors text-left"
+        >
+          <span className="text-akiva-gold/90 text-sm font-medium">
+            Glossario de Indicadores
+          </span>
+          {glossarioOpen
+            ? <ChevronUpIcon className="h-4 w-4 text-gray-400" />
+            : <ChevronDownIcon className="h-4 w-4 text-gray-400" />}
+        </button>
+
+        {glossarioOpen && (
+          <div className="px-4 pb-5 space-y-3">
+            {Object.values(GLOSSARIO).map((g) => (
+              <div key={g.titulo} className="text-xs">
+                <p className="text-akiva-gold/90 font-semibold text-sm mb-0.5">{g.titulo}</p>
+                <p className="text-gray-400 leading-relaxed">{g.txt}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="border-t border-akiva-border">
         <button

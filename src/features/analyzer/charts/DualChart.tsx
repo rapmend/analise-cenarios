@@ -16,7 +16,7 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
   const [aplicView, setAplicView] = useState<'bruto' | 'liquido'>('bruto');
   const aplicKey = aplicView === 'bruto' ? 'valorAplicacao' : 'valorAplicacaoLiq';
   const aplicLucroKey = aplicView === 'bruto' ? 'posicaoFinanceira' : 'posicaoFinanceiraLiq';
-  const aplicSuffix = aplicView === 'bruto' ? '(bruto)' : '(liq. se resgatado)';
+  const aplicSuffix = aplicView === 'bruto' ? '(bruto)' : '(liquido com resgate ao fim)';
 
   return (
     <div>
@@ -32,7 +32,7 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
             type="button"
             onClick={() => setAplicView('liquido')}
             className={`px-2 py-0.5 transition-colors border-l border-akiva-border ${aplicView === 'liquido' ? 'bg-akiva-gold/20 text-akiva-gold' : 'text-gray-500 hover:text-gray-300'}`}
-          >Liquido se resgatado</button>
+          >Liquido (resgate ao fim)</button>
         </div>
       </div>
     <ResponsiveContainer width="100%" height={240}>
@@ -105,18 +105,20 @@ export default function DualChart({ serie, benchmarkNome = 'Aplicacao Financeira
           </p>
           <p>
             <span className="text-akiva-gold/80">Aplicacao — Bruto (default):</span>{' '}
-            cada aporte capitaliza pela taxa anual da aplicacao ate o mes m, <em>sem deduzir IR</em>.
-            Esta visao preserva a base de juros compostos como ocorre na pratica — o IR de renda fixa so e devido no resgate.
+            cada aporte capitaliza pela taxa anual da aplicacao ate o mes m, <em>sem deduzir IR em nenhum momento</em>.
+            E o valor pre-imposto da carteira; nao representa o resultado realizado.
           </p>
           <p>
-            <span className="text-akiva-gold/80">Aplicacao — Liquido se resgatado:</span>{' '}
-            simulacao "se eu resgatasse neste mes". Para cada aporte, aplica IR sobre o ganho usando a aliquota correspondente ao prazo
-            (tabela regressiva 22,5% / 20% / 17,5% / 15%, ou aliquota fixa). E uma visao apenas para visualizacao — nao altera
-            a capitalizacao real.
+            <span className="text-akiva-gold/80">Aplicacao — Liquido (resgate ao fim):</span>{' '}
+            durante o periodo, o valor exibido e <em>identico ao bruto</em> (o IR so e devido na realizacao, e o resgate
+            ocorre apenas no encerramento do projeto, mes M{`{n}`}). No mes final (M{`{n}`}), o IR e aplicado por tranche
+            usando a aliquota correspondente ao prazo total de cada aporte ate o resgate (tabela regressiva 22,5% / 20% /
+            17,5% / 15%, ou aliquota fixa). Esta visao reflete o resultado realmente <em>realizado</em>, sem antecipar IR
+            durante o periodo (o que distorceria a base do juro composto).
           </p>
           <p className="text-gray-600">
-            Importante: VPL, TIR e ROI exibidos no painel usam o resultado real do encerramento (com IR no resgate), nao a trilha
-            bruta intermediaria.
+            Importante: VPL, TIR e ROI exibidos no painel usam o resultado realizado no encerramento (com IR aplicado uma
+            unica vez no resgate ao fim do projeto).
           </p>
         </div>
       </details>
