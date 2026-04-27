@@ -52,8 +52,12 @@ export default function ClienteDetailPage() {
       <div className="space-y-6">
         {/* Client header */}
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-full bg-akiva-blue flex items-center justify-center flex-shrink-0">
-            <span className="font-serif text-akiva-gold font-semibold text-xl">{cliente.iniciais}</span>
+          <div className="w-14 h-14 rounded-full bg-akiva-blue flex items-center justify-center flex-shrink-0 px-2">
+            <span className={`font-serif text-akiva-gold font-semibold leading-none text-center ${
+              cliente.iniciais.length <= 3 ? 'text-xl' :
+              cliente.iniciais.length <= 5 ? 'text-base' :
+              cliente.iniciais.length <= 8 ? 'text-xs' : 'text-[10px]'
+            }`}>{cliente.iniciais}</span>
           </div>
           <div>
             <h1 className="font-serif text-akiva-gold text-3xl font-medium">{cliente.nome}</h1>

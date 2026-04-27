@@ -121,6 +121,9 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOpti
     `O IR incide <strong>somente sobre o lucro</strong> e <strong>apenas no encerramento da operação</strong> (resgate); durante o período os valores apresentados são brutos.<br>` +
     `A taxa de juros utilizada é uma <strong>premissa</strong> e pode resultar maior ou menor na prática. Este estudo é uma <strong>projeção</strong> baseada nos parâmetros informados, não constituindo garantia de retorno.`;
 
+  const disclaimerPremissas = `<strong>Sobre as premissas deste estudo:</strong> as premissas adotadas (valorização anual, taxa de desconto/VPL, prazos, indexador, corretagem, IR e custo de oportunidade) são <strong>decisivas</strong> para tornar o projeto viável ou inviável — pequenas variações em qualquer uma delas podem inverter o resultado.<br>` +
+    `Existe portanto <strong>sensibilidade</strong> e <strong>viés</strong> inerentes a essas estimativas. Recomenda-se explorar cenários alternativos e faixas de variação das premissas antes de qualquer decisão — o objetivo deste estudo é auxiliar a decisão do cliente, não garantir retorno.`;
+
   const sections = [
     { num: '1', title: 'Comparativo Numérico' },
     { num: '2', title: 'Cenários Detalhados' },
@@ -234,6 +237,7 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOpti
     <div class="cover-cliente">${clienteCodigo}</div>
     <div class="cover-date">Emitido em ${dataEmissao}</div>
     <div class="cover-disclaimer">${disclaimerCusto}</div>
+    <div class="cover-disclaimer">${disclaimerPremissas}</div>
   </div>
   <div class="cover-footer">
     Documento confidencial · Taxa de Desconto VPL: ${fmtPct(estudo.taxaDescontoVPL)} a.a.

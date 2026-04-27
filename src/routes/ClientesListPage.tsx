@@ -56,8 +56,12 @@ export default function ClientesListPage() {
                 className="bg-akiva-surface border border-akiva-border rounded-lg p-5 cursor-pointer hover:border-akiva-gold/40 transition-colors group"
               >
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-akiva-blue flex items-center justify-center flex-shrink-0">
-                    <span className="font-serif text-akiva-gold font-semibold text-lg">{c.iniciais}</span>
+                  <div className="w-12 h-12 rounded-full bg-akiva-blue flex items-center justify-center flex-shrink-0 px-1.5">
+                    <span className={`font-serif text-akiva-gold font-semibold leading-none text-center ${
+                      c.iniciais.length <= 3 ? 'text-lg' :
+                      c.iniciais.length <= 5 ? 'text-sm' :
+                      c.iniciais.length <= 8 ? 'text-[11px]' : 'text-[9px]'
+                    }`}>{c.iniciais}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium truncate">{c.nome}</p>

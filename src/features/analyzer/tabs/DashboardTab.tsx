@@ -27,6 +27,20 @@ export default function DashboardTab({ cenarios, taxaVPL, benchmark }: Props) {
 
   return (
     <div className="space-y-6">
+      <div className="border-l-2 border-akiva-gold/60 bg-akiva-gold/5 px-4 py-3 rounded-r text-xs text-gray-300 leading-relaxed">
+        <p className="text-akiva-gold/90 font-semibold mb-1">Sobre as premissas deste estudo</p>
+        <p>
+          As <strong className="text-akiva-gold/90">premissas</strong> adotadas (valorizacao anual, taxa de desconto/VPL,
+          prazos, indexador, corretagem, IR e custo de oportunidade) sao <strong>decisivas</strong> para tornar o projeto
+          viavel ou inviavel. Pequenas variacoes em qualquer uma delas podem inverter o resultado.
+        </p>
+        <p className="mt-1.5">
+          Existe portanto <strong className="text-akiva-gold/90">sensibilidade</strong> e <strong className="text-akiva-gold/90">vies</strong> inerentes a essas estimativas.
+          Recomenda-se explorar cenarios alternativos e faixas de variacao das premissas antes de qualquer decisao —
+          o objetivo deste estudo e auxiliar a decisao do cliente, nao garantir retorno.
+        </p>
+      </div>
+
       <div className="bg-akiva-surface border border-akiva-border rounded-lg p-5">
         <h3 className="font-serif text-akiva-gold text-lg mb-1">Lucro Bruto Comparado</h3>
         <p className="text-gray-500 text-xs mb-4">Lucro bruto projetado mes a mes — imovel vs benchmark — por cenario.</p>

@@ -65,12 +65,12 @@ export default function ClienteFormDialog({ open, cliente, onClose, onSave }: Pr
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-gray-300 text-sm">Apelido <span className="text-gray-500 text-xs">(exibido no PDF)</span></Label>
+            <Label className="text-gray-300 text-sm">Apelido <span className="text-gray-500 text-xs">(exibido no PDF e no avatar)</span></Label>
             <Input
               value={iniciais}
-              onChange={(e) => setIniciais(e.target.value.toUpperCase().slice(0, 3))}
-              placeholder="Ex: JS"
-              maxLength={3}
+              onChange={(e) => setIniciais(e.target.value.toUpperCase().slice(0, 16))}
+              placeholder="Ex: AKIVA LSII"
+              maxLength={16}
               className="bg-akiva-navy border-akiva-border text-white placeholder:text-gray-500 focus:border-akiva-gold uppercase"
             />
           </div>
