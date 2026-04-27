@@ -116,9 +116,9 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
           <tr className="border-b border-akiva-border">
             <th className="text-left py-3 px-4 text-gray-400 font-medium">Indicador</th>
             {cenarios.map((c) => (
-              <th key={c.id} className="text-right py-3 px-4 text-gray-300 font-medium">
-                <div>{c.nome}</div>
-                <div className="text-akiva-gold/60 text-xs font-normal mt-0.5">
+              <th key={c.id} className="text-center py-3 px-4 text-gray-300 font-medium align-bottom">
+                <div className="leading-tight" style={{ textWrap: 'balance' as const }}>{c.nome}</div>
+                <div className="text-akiva-gold/60 text-xs font-normal mt-1">
                   {c.tipo === 'avista' ? 'A Vista' : 'Parcelado'} · {c.periodoMeses}m
                 </div>
               </th>
