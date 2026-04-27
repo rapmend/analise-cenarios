@@ -188,7 +188,7 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOpti
   .cmp-th-name { color: #1a1a2e; font-weight: 600; line-height: 1.25; }
   .cmp-th-sub { color: #8893a8; font-size: 9px; font-weight: 400; margin-top: 3px; }
   .cmp-label { padding: 8px; color: #6b7f94; border-bottom: 1px solid #f0f0f0; }
-  .cmp-td { padding: 8px; text-align: right; border-bottom: 1px solid #f0f0f0; font-weight: 500; }
+  .cmp-td { padding: 8px; text-align: center; border-bottom: 1px solid #f0f0f0; font-weight: 500; font-variant-numeric: tabular-nums; }
   .cmp-best { color: #b5892a; font-weight: 700; }
   .cmp-note { color: #8893a8; font-size: 10px; margin-top: 10px; }
 
@@ -207,8 +207,8 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOpti
   .p-row span:last-child { font-weight: 500; }
 
   .parcelas-table { width: 100%; border-collapse: collapse; font-size: 9px; margin-top: 10px; }
-  .parcelas-table th { background: #f4f6fb; padding: 6px 8px; text-align: left; color: #6b7f94; font-weight: 600; border-bottom: 2px solid #e0e4ed; }
-  .parcelas-table td { padding: 4px 8px; border-bottom: 1px solid #f0f0f0; }
+  .parcelas-table th { background: #f4f6fb; padding: 6px 8px; text-align: center; color: #6b7f94; font-weight: 600; border-bottom: 2px solid #e0e4ed; }
+  .parcelas-table td { padding: 4px 8px; text-align: center; border-bottom: 1px solid #f0f0f0; font-variant-numeric: tabular-nums; }
   .parcelas-table .tipo-entrada { color: #b5892a; font-weight: 600; }
   .parcelas-table .tipo-obra { color: #2a5b9e; }
   .parcelas-table .tipo-chaves { color: #1a7a45; font-weight: 600; }
@@ -227,7 +227,6 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOpti
 
 <div class="cover">
   <div>
-    <div class="cover-logo">Akiva</div>
     <div class="cover-sub">Analise de Investimento Imobiliario</div>
   </div>
   <div class="cover-body">

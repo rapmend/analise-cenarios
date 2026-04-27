@@ -55,17 +55,17 @@ export default function ClienteFormDialog({ open, cliente, onClose, onSave }: Pr
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4 py-2">
           <div className="space-y-1.5">
-            <Label className="text-gray-300 text-sm">Nome do cliente</Label>
+            <Label className="text-gray-300 text-sm">Codigo cliente</Label>
             <Input
               autoFocus
               value={nome}
               onChange={(e) => handleNomeChange(e.target.value)}
-              placeholder="Ex: João Silva"
+              placeholder="Ex: CLI-0001"
               className="bg-akiva-navy border-akiva-border text-white placeholder:text-gray-500 focus:border-akiva-gold"
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-gray-300 text-sm">Iniciais (exibidas no avatar)</Label>
+            <Label className="text-gray-300 text-sm">Apelido <span className="text-gray-500 text-xs">(exibido no PDF)</span></Label>
             <Input
               value={iniciais}
               onChange={(e) => setIniciais(e.target.value.toUpperCase().slice(0, 3))}
