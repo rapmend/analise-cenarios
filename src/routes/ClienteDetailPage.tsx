@@ -4,12 +4,12 @@ import { useAppStore } from '@/store/appStore';
 import AppShell from '@/components/AppShell';
 import EstudoFormDialog from '@/features/estudos/EstudoFormDialog';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, TrashIcon } from '@radix-ui/react-icons';
+import { Pencil1Icon, PlusIcon, TrashIcon } from '@radix-ui/react-icons';
 import type { Estudo } from '@/types';
 
 export default function ClienteDetailPage() {
   const { clienteId } = useParams<{ clienteId: string }>();
-  const { clientes, estudosByCliente, loadClientes, loadEstudos, addEstudo, removeEstudo } = useAppStore();
+  const { clientes, estudosByCliente, loadClientes, loadEstudos, addEstudo, updateEstudo, removeEstudo } = useAppStore();
   const navigate = useNavigate();
 
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -26,7 +26,7 @@ export default function ClienteDetailPage() {
   const handleSave = (nome: string) => {
     if (!clienteId) return;
     if (editing) {
-      // rename: done via updateEstudo in analyzer, not here for now
+      updateEstudo({ ...editing, nome });
     } else {
       const e = addEstudo(clienteId, nome);
       navigate(`/clientes/${clienteId}/estudos/${e.id}`);
@@ -102,6 +102,14 @@ export default function ClienteDetailPage() {
                     onClick={(ev) => ev.stopPropagation()}
                   >
                     <button
+                      aria-label="Renomear estudo"
+                      onClick={() => { setEditing(e); setDialogOpen(true); }}
+                      className="p-1.5 text-gray-400 hover:text-akiva-gold transition-colors rounded"
+                    >
+                      <Pencil1Icon className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      aria-label="Excluir estudo"
                       onClick={() => { if (confirm(`Excluir estudo "${e.nome}"?`)) removeEstudo(e.id, e.clienteId); }}
                       className="p-1.5 text-gray-400 hover:text-red-400 transition-colors rounded"
                     >
