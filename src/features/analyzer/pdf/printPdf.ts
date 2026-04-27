@@ -59,9 +59,16 @@ function glossarioHtml(): string {
     </div>`).join('');
 }
 
-export function printPdf(estudo: Estudo, clienteNome: string): void {
+export function printPdf(estudo: Estudo, clienteCodigo: string): void {
   const resultados = estudo.cenarios.map((c) => calcular(c, estudo.taxaDescontoVPL));
   const dataEmissao = new Date(estudo.dataEmissao).toLocaleDateString('pt-BR');
+
+  const benchmark = estudo.benchmark;
+  const irText =
+    benchmark.tipo === 'rendaFixa' ? 'IR regressivo de renda fixa (22,5% / 20% / 17,5% / 15%)' :
+    benchmark.tipo === 'isento'    ? 'isento de IR' :
+    `IR fixo de ${fmtPct(benchmark.aliquotaIR)}`;
+  const disclaimerCusto = `Custo de oportunidade considerado: <strong>${benchmark.nome}</strong> a ${fmtPct(estudo.taxaDescontoVPL)} a.a. (${irText}). Os valores apresentados sao brutos (sem dedução de IR sobre o lucro da aplicação) — o tratamento tributário do custo de oportunidade sera abordado em proxima versão.`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -79,8 +86,10 @@ export function printPdf(estudo: Estudo, clienteNome: string): void {
   .cover-sub { color: #8ba0b8; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
   .cover-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
   .cover-title { font-family: 'EB Garamond', serif; font-size: 36px; color: #e8edf5; line-height: 1.2; margin-bottom: 12px; }
-  .cover-cliente { color: #E0CA90; font-size: 16px; margin-bottom: 4px; }
+  .cover-cliente { color: #E0CA90; font-size: 16px; margin-bottom: 4px; letter-spacing: 1px; }
   .cover-date { color: #8ba0b8; font-size: 12px; }
+  .cover-disclaimer { color: #c9d3df; font-size: 10px; line-height: 1.55; margin-top: 22px; padding: 12px 14px; background: rgba(224,202,144,0.06); border-left: 2px solid #E0CA90; border-radius: 0 4px 4px 0; }
+  .cover-disclaimer strong { color: #E0CA90; font-weight: 600; }
   .cover-footer { color: #8ba0b8; font-size: 11px; border-top: 1px solid #1a3a5c; padding-top: 16px; }
 
   .page { padding: 40px 48px; page-break-before: always; }
@@ -127,11 +136,12 @@ export function printPdf(estudo: Estudo, clienteNome: string): void {
   </div>
   <div class="cover-body">
     <div class="cover-title">${estudo.nome}</div>
-    <div class="cover-cliente">${clienteNome}</div>
+    <div class="cover-cliente">${clienteCodigo}</div>
     <div class="cover-date">Emitido em ${dataEmissao}</div>
+    <div class="cover-disclaimer">${disclaimerCusto}</div>
   </div>
   <div class="cover-footer">
-    Documento confidencial · Akiva Investimentos · Taxa de Desconto VPL: ${fmtPct(estudo.taxaDescontoVPL)} a.a.
+    Documento confidencial · Taxa de Desconto VPL: ${fmtPct(estudo.taxaDescontoVPL)} a.a.
   </div>
 </div>
 

@@ -74,7 +74,7 @@ export default function EstudoAnalyzerPage() {
 
   const handlePrint = useCallback(() => {
     if (!estudo || !cliente) return;
-    printPdf(estudo, cliente.nome);
+    printPdf(estudo, cliente.iniciais);
   }, [estudo, cliente]);
 
   if (!estudo || !cliente) {
