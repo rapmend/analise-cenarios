@@ -114,7 +114,7 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-akiva-border">
-            <th className="text-left py-3 px-4 text-gray-400 font-medium">Indicador</th>
+            <th className="text-left py-3 px-4 text-gray-400 font-medium align-bottom">Indicador</th>
             {cenarios.map((c) => (
               <th key={c.id} className="text-center py-3 px-4 text-gray-300 font-medium align-bottom">
                 <div className="leading-tight" style={{ textWrap: 'balance' as const }}>{c.nome}</div>
@@ -143,7 +143,7 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
                   return (
                     <td
                       key={cenarios[i].id}
-                      className={`py-3 px-4 text-right font-medium ${isBest ? 'text-akiva-gold' : 'text-white'}`}
+                      className={`py-3 px-4 text-center font-medium tabular-nums ${isBest ? 'text-akiva-gold' : 'text-white'}`}
                     >
                       {formatted}
                       {isBest && <span className="ml-1 text-xs">★</span>}
