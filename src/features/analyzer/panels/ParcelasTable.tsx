@@ -12,6 +12,24 @@ interface Props {
   benchmarkNome?: string;
   /** Nome do cenário (usado no nome do arquivo exportado) */
   cenarioNome?: string;
+  /** Corretagem (0–1) para cálculo do saldo líquido por-parcela */
+  corretagem?: number;
+  /** IR sobre lucro imobiliário (0–1) para cálculo do saldo líquido por-parcela */
+  ir?: number;
+}
+
+/**
+ * Calcula o "saldo líquido do imóvel" no instante de UMA parcela específica
+ * — usa p.saldoApos (saldo devedor depois desta parcela) e p.acumulado (total
+ * pago até e incluindo esta parcela). Isso evita o bug de quando há 2 parcelas
+ * no mesmo mês (obra + chaves) e ambas pegariam o mesmo serie[m].patrimonio.
+ */
+function saldoLiquidoParcela(p: Parcela, valorImovel: number, corretagem: number, ir: number): number {
+  const corret = valorImovel * corretagem;
+  const valorVenda = valorImovel - corret - p.saldoApos;
+  const lucroBruto = valorVenda - p.acumulado;
+  const irValor = lucroBruto > 0 ? lucroBruto * ir : 0;
+  return valorVenda - irValor;
 }
 
 const TIPO_LABEL: Record<string, string> = {
@@ -45,7 +63,7 @@ function slug(s: string): string {
     .toLowerCase() || 'cronograma';
 }
 
-export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioNome }: Props) {
+export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioNome, corretagem = 0, ir = 0 }: Props) {
   const [open, setOpen] = useState(false);
 
   if (parcelas.length === 0) return null;
@@ -62,6 +80,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
     ];
     const rows = parcelas.map((p) => {
       const pt = serie?.[p.mes];
+      const sLiq = pt ? saldoLiquidoParcela(p, pt.valorImovel, corretagem, ir) : null;
       return [
         p.mes === 0 ? 'M0' : `M${p.mes}`,
         TIPO_LABEL[p.tipo] ?? p.tipo,
@@ -69,7 +88,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
         csvNum(p.acumulado),
         pt ? csvNum(pt.valorImovel) : '',
         p.saldoApos > 0.005 ? csvNum(p.saldoApos) : '',
-        pt ? csvNum(pt.patrimonio) : '',
+        sLiq != null ? csvNum(sLiq) : '',
         ...(showBenchmark ? [pt ? csvNum(pt.valorAplicacao) : '', pt ? csvNum(pt.posicaoFinanceira) : ''] : []),
       ];
     });
@@ -145,6 +164,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
             <tbody className="divide-y divide-akiva-border/50">
               {parcelas.map((p, i) => {
                 const ponto = serie?.[p.mes];
+                const sLiq = ponto ? saldoLiquidoParcela(p, ponto.valorImovel, corretagem, ir) : null;
                 const liquidoColor = ponto && ponto.posicaoFinanceira < 0 ? 'text-red-400' : 'text-green-400';
                 return (
                   <tr key={i} className="hover:bg-akiva-surface/30 transition-colors">
@@ -154,7 +174,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
                     <td className="px-4 py-1.5 text-right text-gray-300">{fmt(p.acumulado, 'moeda')}</td>
                     <td className="px-4 py-1.5 text-right text-akiva-gold/90">{ponto ? fmt(ponto.valorImovel, 'moeda') : '--'}</td>
                     <td className="px-4 py-1.5 text-right text-gray-400">{p.saldoApos > 0.005 ? fmt(p.saldoApos, 'moeda') : '--'}</td>
-                    <td className={`px-4 py-1.5 text-right ${ponto && ponto.patrimonio - p.acumulado >= 0 ? 'text-green-400/90' : 'text-akiva-gold/90'}`}>{ponto ? fmt(ponto.patrimonio, 'moeda') : '--'}</td>
+                    <td className={`px-4 py-1.5 text-right ${sLiq != null && sLiq >= p.acumulado ? 'text-green-400/90' : 'text-akiva-gold/90'}`}>{sLiq != null ? fmt(sLiq, 'moeda') : '--'}</td>
                     {showBenchmark && (
                       <>
                         <td className="px-4 py-1.5 text-right text-blue-300 border-l border-akiva-border/60">
