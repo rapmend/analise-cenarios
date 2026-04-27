@@ -7,23 +7,35 @@ export interface PontoSerie {
   capitalAplicado: number;
   posicaoLiquida: number;
   patrimonio: number;
-  /** Valor bruto compostado da aplicação financeira no mês m (sem IR) */
+  /** Valor da aplicação no mês m: BRUTO durante a operação, LÍQUIDO (pós-IR) no mês final */
   valorAplicacao: number;
-  /** Lucro bruto da aplicação financeira = valorAplicacao − capitalAplicado (nominal) */
+  /** Resultado da aplicação = valorAplicacao − capitalAplicado (nominal) */
   posicaoFinanceira: number;
 }
 
 /**
- * @param _benchmarkIR mantido na assinatura para compatibilidade futura;
- *                     hoje a serie sempre retorna VALOR BRUTO (sem IR).
- *                     A aplicação de IR (regressivo, flat ou isento) ficou
- *                     para uma próxima versão.
+ * Alíquota de IR regressivo de renda fixa conforme prazo da tranche (em meses).
+ * Até 6m: 22,5% · 7-12m: 20% · 13-24m: 17,5% · acima de 24m: 15%.
+ * IR só incide sobre o LUCRO (ganho) da tranche.
+ */
+function irRF(prazoMeses: number): number {
+  if (prazoMeses <= 6) return 0.225;
+  if (prazoMeses <= 12) return 0.200;
+  if (prazoMeses <= 24) return 0.175;
+  return 0.150;
+}
+
+/**
+ * @param benchmarkIR 'regressiva' = tabela regressiva de renda fixa;
+ *                    number = alíquota fixa (0–1; use 0 para isento).
+ *                    IR é aplicado APENAS no mês final da operação (m === n),
+ *                    refletindo o resgate real — durante a operação o valor é bruto.
  */
 export function serieTemporal(
   c: Cenario,
   r: Resultado,
   taxaAplicacaoAnual: number,
-  _benchmarkIR: 'regressiva' | number = 'regressiva',
+  benchmarkIR: 'regressiva' | number = 'regressiva',
 ): PontoSerie[] {
   const n = Math.max(1, Math.round(c.periodoMeses));
   const valorizMensal = Math.pow(1 + c.valorizAnual, 1 / 12) - 1;
@@ -74,15 +86,25 @@ export function serieTemporal(
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Valor BRUTO compostado da aplicação financeira no mês m
-    // (cada pagamento composto da data de desembolso até m). Sem IR — adiado p/ próxima versão.
+    // Valor da aplicação financeira no mês m.
+    // Durante a operação (m < n): BRUTO compostado.
+    // No mês final (m === n): IR aplicado por tranche (regressivo ou flat) sobre o LUCRO.
+    const isFinal = m === n;
     let valorAplicacao = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
-        valorAplicacao += pagamentoPorMes[t] * Math.pow(1 + rm, m - t);
+        const prazo = m - t;
+        const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
+        if (isFinal) {
+          const ganho = grosso - pagamentoPorMes[t];
+          const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
+          const irTranche = ganho > 0 ? ganho * aliq : 0;
+          valorAplicacao += grosso - irTranche;
+        } else {
+          valorAplicacao += grosso;
+        }
       }
     }
-    // Lucro bruto da aplicação = valor compostado − capital nominal pago
     const posicaoFinanceira = valorAplicacao - capitalAplicado;
 
     serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, valorAplicacao, posicaoFinanceira });

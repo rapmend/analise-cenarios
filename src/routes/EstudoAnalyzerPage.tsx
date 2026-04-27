@@ -174,6 +174,13 @@ export default function EstudoAnalyzerPage() {
         )}
       </div>
 
+      {/* Nota sobre projeção e IR */}
+      <p className="text-gray-500 text-[11px] leading-relaxed mb-6 -mt-3 max-w-3xl">
+        IR incide somente sobre o lucro e apenas no encerramento da operação (resgate);
+        durante o período os valores são brutos. A taxa de juros é uma premissa — pode
+        ser maior ou menor na prática. Este estudo é uma projeção baseada nos parâmetros informados.
+      </p>
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">

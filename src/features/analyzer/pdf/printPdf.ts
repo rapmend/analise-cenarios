@@ -65,10 +65,12 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
 
   const benchmark = estudo.benchmark;
   const irText =
-    benchmark.tipo === 'rendaFixa' ? 'IR regressivo de renda fixa (22,5% / 20% / 17,5% / 15%)' :
+    benchmark.tipo === 'rendaFixa' ? 'IR regressivo de renda fixa (22,5% até 6m · 20% de 7-12m · 17,5% de 13-24m · 15% acima de 24m)' :
     benchmark.tipo === 'isento'    ? 'isento de IR' :
-    `IR fixo de ${fmtPct(benchmark.aliquotaIR)}`;
-  const disclaimerCusto = `Custo de oportunidade considerado: <strong>${benchmark.nome}</strong> a ${fmtPct(estudo.taxaDescontoVPL)} a.a. (${irText}). Os valores apresentados sao brutos (sem dedução de IR sobre o lucro da aplicação) — o tratamento tributário do custo de oportunidade sera abordado em proxima versão.`;
+    `IR fixo de ${fmtPct(benchmark.aliquotaIR)} sobre o lucro`;
+  const disclaimerCusto = `<strong>Custo de oportunidade considerado:</strong> ${benchmark.nome} a ${fmtPct(estudo.taxaDescontoVPL)} a.a. — ${irText}.<br>` +
+    `O IR incide <strong>somente sobre o lucro</strong> e <strong>apenas no encerramento da operação</strong> (resgate); durante o período os valores apresentados são brutos.<br>` +
+    `A taxa de juros utilizada é uma <strong>premissa</strong> e pode resultar maior ou menor na prática. Este estudo é uma <strong>projeção</strong> baseada nos parâmetros informados, não constituindo garantia de retorno.`;
 
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
