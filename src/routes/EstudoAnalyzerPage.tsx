@@ -72,25 +72,10 @@ export default function EstudoAnalyzerPage() {
     updateEstudo({ ...estudo, benchmark: { ...benchmark, ...patch } });
   }, [estudo, benchmark, updateEstudo]);
 
-  const handlePrint = useCallback(async () => {
+  const handlePrint = useCallback(() => {
     if (!estudo || !cliente) return;
-    const prevTab = activeTab;
-    if (activeTab !== 'dashboard') {
-      setActiveTab('dashboard');
-      // espera o tab montar e Recharts dimensionar
-      await new Promise((r) => setTimeout(r, 600));
-    }
-    // captura SVGs dos overlay charts do dashboard (primeiros 2 — visões comparativas).
-    // Base UI só monta o tabpanel ativo, então qualquer querySelector pega só os do dashboard.
-    // Cada .recharts-wrapper tem várias <svg> (ícones de legenda + chart); o chart é o filho direto.
-    const wrappers = Array.from(document.querySelectorAll('[role="tabpanel"] .recharts-wrapper'));
-    const dashboardCharts = wrappers.slice(0, 2).map((w) => {
-      const svg = w.querySelector(':scope > svg');
-      return svg ? svg.outerHTML : '';
-    }).filter(Boolean);
-    printPdf(estudo, cliente.iniciais, { dashboardCharts });
-    if (prevTab !== 'dashboard') setActiveTab(prevTab);
-  }, [estudo, cliente, activeTab]);
+    printPdf(estudo, cliente.iniciais);
+  }, [estudo, cliente]);
 
   if (!estudo || !cliente) {
     return (

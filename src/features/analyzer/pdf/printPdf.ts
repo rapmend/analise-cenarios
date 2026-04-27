@@ -2,7 +2,7 @@ import type { Estudo, Cenario, Resultado } from '@/types';
 import { calcular, fmt, GLOSSARIO } from '@/lib/calc';
 
 interface PrintOptions {
-  dashboardCharts?: string[];
+  // reservado para extensoes futuras
 }
 
 function fmtPct(v: number) { return fmt(v, 'pct'); }
@@ -100,17 +100,6 @@ function comparativoTableHtml(cenarios: Cenario[], resultados: Resultado[]): str
   `;
 }
 
-function dashboardHtml(charts: string[]): string {
-  if (charts.length === 0) return '';
-  const titles = ['Lucro Bruto Comparado', 'Aplicação Financeira (Custo de Oportunidade)'];
-  return charts.map((svg, i) => `
-    <div class="chart-block">
-      <h3 class="chart-title">${titles[i] ?? `Gráfico ${i + 1}`}</h3>
-      <div class="chart-print">${svg}</div>
-    </div>
-  `).join('');
-}
-
 function glossarioHtml(): string {
   return Object.values(GLOSSARIO).map((g) => `
     <div class="gloss-item">
@@ -119,7 +108,7 @@ function glossarioHtml(): string {
     </div>`).join('');
 }
 
-export function printPdf(estudo: Estudo, clienteCodigo: string, opts: PrintOptions = {}): void {
+export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOptions = {}): void {
   const resultados = estudo.cenarios.map((c) => calcular(c, estudo.taxaDescontoVPL));
   const dataEmissao = new Date(estudo.dataEmissao).toLocaleDateString('pt-BR');
 
@@ -132,12 +121,10 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, opts: PrintOptio
     `O IR incide <strong>somente sobre o lucro</strong> e <strong>apenas no encerramento da operação</strong> (resgate); durante o período os valores apresentados são brutos.<br>` +
     `A taxa de juros utilizada é uma <strong>premissa</strong> e pode resultar maior ou menor na prática. Este estudo é uma <strong>projeção</strong> baseada nos parâmetros informados, não constituindo garantia de retorno.`;
 
-  // Estrutura do índice (numeração estática, ordem de impressão)
   const sections = [
     { num: '1', title: 'Comparativo Numérico' },
-    ...(opts.dashboardCharts && opts.dashboardCharts.length > 0 ? [{ num: '2', title: 'Dashboard Visual' }] : []),
-    { num: opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '3' : '2', title: 'Cenários Detalhados' },
-    { num: opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '4' : '3', title: 'Glossário de Indicadores' },
+    { num: '2', title: 'Cenários Detalhados' },
+    { num: '3', title: 'Glossário de Indicadores' },
   ];
 
   const html = `<!DOCTYPE html>
@@ -205,12 +192,6 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, opts: PrintOptio
   .cmp-best { color: #b5892a; font-weight: 700; }
   .cmp-note { color: #8893a8; font-size: 10px; margin-top: 10px; }
 
-  /* Dashboard SVG */
-  .chart-block { margin-bottom: 28px; page-break-inside: avoid; }
-  .chart-title { font-size: 14px !important; color: #003469 !important; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e8e8e8; display: block !important; }
-  .chart-print { width: 100%; }
-  .chart-print svg { width: 100% !important; height: auto !important; max-height: 280px; display: block; }
-
   /* Cenários */
   .cenario-section { margin-bottom: 36px; border: 1px solid #e0e4ed; border-radius: 8px; padding: 20px; page-break-inside: avoid; }
   .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
@@ -272,20 +253,13 @@ export function printPdf(estudo: Estudo, clienteCodigo: string, opts: PrintOptio
   ${comparativoTableHtml(estudo.cenarios, resultados)}
 </div>
 
-${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? `
 <div class="page">
-  <h2>2. Dashboard Visual</h2>
-  ${dashboardHtml(opts.dashboardCharts)}
-</div>
-` : ''}
-
-<div class="page">
-  <h2>${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '3' : '2'}. Cenários Detalhados</h2>
+  <h2>2. Cenários Detalhados</h2>
   ${estudo.cenarios.map((c, i) => cenarioSection(c, resultados[i], estudo.taxaDescontoVPL)).join('')}
 </div>
 
 <div class="page">
-  <h2>${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '4' : '3'}. Glossário de Indicadores</h2>
+  <h2>3. Glossário de Indicadores</h2>
   ${glossarioHtml()}
 </div>
 
