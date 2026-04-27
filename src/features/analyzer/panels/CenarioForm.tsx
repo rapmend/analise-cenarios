@@ -227,7 +227,7 @@ export default function CenarioForm({ cenario, onChange, onRemove, canRemove }: 
               )}
             />
             <PctInput
-              label="Taxa Indexador (mensal)"
+              label="Taxa Indexador projetada (mensal)"
               value={watchNum('taxaIndexador')}
               onChange={(v) => { (setValue as (k: string, v: unknown) => void)('taxaIndexador', v); onChange({ ...cenario, taxaIndexador: v } as CenarioParcelado); }}
             />

@@ -1,6 +1,10 @@
 import type { Estudo, Cenario, Resultado } from '@/types';
 import { calcular, fmt, GLOSSARIO } from '@/lib/calc';
 
+interface PrintOptions {
+  dashboardCharts?: string[];
+}
+
 function fmtPct(v: number) { return fmt(v, 'pct'); }
 function fmtM(v: number) { return fmt(v, 'moeda0'); }
 
@@ -41,7 +45,7 @@ function cenarioSection(c: Cenario, r: Resultado, taxaVPL: number): string {
         <div class="p-row"><span>Desconto</span><span>${fmtPct(c.taxaDesc)}</span></div>
         ${c.tipo === 'parcelado' ? `
           <div class="p-row"><span>Indexador</span><span>${c.indexador}</span></div>
-          <div class="p-row"><span>Taxa Indexador (mensal)</span><span>${fmtPct(c.taxaIndexador)}</span></div>
+          <div class="p-row"><span>Taxa Indexador projetada (mensal)</span><span>${fmtPct(c.taxaIndexador)}</span></div>
           <div class="p-row"><span>Tempo de Obra</span><span>${c.tempoObra} meses</span></div>
           <div class="p-row"><span>Entrada</span><span>${fmtPct(c.pctEntrada)}</span></div>
           <div class="p-row"><span>Durante a Obra</span><span>${fmtPct(c.pctObra)}</span></div>
@@ -49,6 +53,62 @@ function cenarioSection(c: Cenario, r: Resultado, taxaVPL: number): string {
       </div>
       ${r.tipo === 'parcelado' && r.parcelas.length > 0 ? parcelasHtml(r) : ''}
     </div>`;
+}
+
+function comparativoTableHtml(cenarios: Cenario[], resultados: Resultado[]): string {
+  const ROWS: Array<{ label: string; key: string; fmt: 'moeda0' | 'pct'; source: 'cenario' | 'resultado'; best: boolean }> = [
+    { label: 'Valor do Imovel',     key: 'valorImovel',    fmt: 'moeda0', source: 'cenario',   best: false },
+    { label: 'Valorizacao Anual',   key: 'valorizAnual',   fmt: 'pct',    source: 'cenario',   best: false },
+    { label: 'Capital Aplicado',    key: 'valorInvestido', fmt: 'moeda0', source: 'resultado', best: false },
+    { label: 'Valor Futuro',        key: 'valorFuturo',    fmt: 'moeda0', source: 'resultado', best: false },
+    { label: 'Lucro Bruto',         key: 'lucroBruto',     fmt: 'moeda0', source: 'resultado', best: true  },
+    { label: 'Lucro Liquido',       key: 'lucroLiquido',   fmt: 'moeda0', source: 'resultado', best: true  },
+    { label: 'ROI Total',           key: 'roi',            fmt: 'pct',    source: 'resultado', best: true  },
+    { label: 'VPL',                 key: 'vpl',            fmt: 'moeda0', source: 'resultado', best: true  },
+    { label: 'TIR (anual)',         key: 'tir',            fmt: 'pct',    source: 'resultado', best: true  },
+  ];
+
+  const headers = cenarios.map(c => `
+    <th class="cmp-th">
+      <div class="cmp-th-name">${c.nome}</div>
+      <div class="cmp-th-sub">${c.tipo === 'avista' ? 'A Vista' : 'Parcelado'} · ${c.periodoMeses}m</div>
+    </th>
+  `).join('');
+
+  const rows = ROWS.map(({ label, key, fmt: fmtTipo, source, best: hasBest }) => {
+    const values = resultados.map((r, i) => {
+      const c = cenarios[i];
+      return source === 'cenario'
+        ? (c[key as keyof Cenario] as number)
+        : (r[key as keyof typeof r] as number);
+    });
+    const best = hasBest ? Math.max(...values) : null;
+    const tds = values.map((v) => {
+      const isBest = best !== null && v === best && values.filter(x => x === best).length === 1;
+      const formatted = isNaN(v) ? '--' : fmt(v, fmtTipo);
+      return `<td class="cmp-td ${isBest ? 'cmp-best' : ''}">${formatted}${isBest ? ' ★' : ''}</td>`;
+    }).join('');
+    return `<tr><td class="cmp-label">${label}</td>${tds}</tr>`;
+  }).join('');
+
+  return `
+    <table class="cmp-table">
+      <thead><tr><th class="cmp-th-label">Indicador</th>${headers}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <p class="cmp-note">★ Melhor valor entre os cenarios para esse indicador.</p>
+  `;
+}
+
+function dashboardHtml(charts: string[]): string {
+  if (charts.length === 0) return '';
+  const titles = ['Lucro Bruto Comparado', 'Aplicação Financeira (Custo de Oportunidade)'];
+  return charts.map((svg, i) => `
+    <div class="chart-block">
+      <h3 class="chart-title">${titles[i] ?? `Gráfico ${i + 1}`}</h3>
+      <div class="chart-print">${svg}</div>
+    </div>
+  `).join('');
 }
 
 function glossarioHtml(): string {
@@ -59,7 +119,7 @@ function glossarioHtml(): string {
     </div>`).join('');
 }
 
-export function printPdf(estudo: Estudo, clienteCodigo: string): void {
+export function printPdf(estudo: Estudo, clienteCodigo: string, opts: PrintOptions = {}): void {
   const resultados = estudo.cenarios.map((c) => calcular(c, estudo.taxaDescontoVPL));
   const dataEmissao = new Date(estudo.dataEmissao).toLocaleDateString('pt-BR');
 
@@ -72,6 +132,14 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
     `O IR incide <strong>somente sobre o lucro</strong> e <strong>apenas no encerramento da operação</strong> (resgate); durante o período os valores apresentados são brutos.<br>` +
     `A taxa de juros utilizada é uma <strong>premissa</strong> e pode resultar maior ou menor na prática. Este estudo é uma <strong>projeção</strong> baseada nos parâmetros informados, não constituindo garantia de retorno.`;
 
+  // Estrutura do índice (numeração estática, ordem de impressão)
+  const sections = [
+    { num: '1', title: 'Comparativo Numérico' },
+    ...(opts.dashboardCharts && opts.dashboardCharts.length > 0 ? [{ num: '2', title: 'Dashboard Visual' }] : []),
+    { num: opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '3' : '2', title: 'Cenários Detalhados' },
+    { num: opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '4' : '3', title: 'Glossário de Indicadores' },
+  ];
+
   const html = `<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -79,7 +147,28 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
 <title>${estudo.nome}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;600&display=swap');
-  @page { margin: 0; size: A4; }
+  @page {
+    margin: 60px 50px 70px 50px;
+    size: A4;
+    @bottom-right {
+      content: counter(page);
+      color: #6b7f94;
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+    }
+    @bottom-left {
+      content: "${estudo.nome.replace(/"/g, '\\"')} · ${clienteCodigo.replace(/"/g, '\\"')}";
+      color: #6b7f94;
+      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+    }
+  }
+  @page :first {
+    margin: 0;
+    @bottom-right { content: ''; }
+    @bottom-left { content: ''; }
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: #fff; color: #1a1a2e; font-size: 11px; line-height: 1.5; }
 
@@ -94,12 +183,36 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
   .cover-disclaimer strong { color: #E0CA90; font-weight: 600; }
   .cover-footer { color: #8ba0b8; font-size: 11px; border-top: 1px solid #1a3a5c; padding-top: 16px; }
 
-  .page { padding: 40px 48px; page-break-before: always; }
+  .page { page-break-before: always; }
   h2 { font-family: 'EB Garamond', serif; color: #003469; font-size: 22px; margin-bottom: 16px; }
   h3 { font-family: 'EB Garamond', serif; color: #001226; font-size: 18px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
   .tag { background: #003469; color: #E0CA90; font-size: 10px; font-family: 'Inter', sans-serif; padding: 2px 8px; border-radius: 4px; vertical-align: middle; }
 
-  .cenario-section { margin-bottom: 36px; border: 1px solid #e0e4ed; border-radius: 8px; padding: 20px; }
+  /* Índice */
+  .toc-list { list-style: none; padding: 0; margin: 24px 0; }
+  .toc-item { display: flex; align-items: baseline; padding: 12px 0; border-bottom: 1px dotted #d0d4dd; }
+  .toc-num { color: #E0CA90; font-weight: 600; width: 30px; }
+  .toc-title { color: #1a1a2e; font-size: 14px; flex: 1; }
+
+  /* Comparativo */
+  .cmp-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 11px; }
+  .cmp-th-label, .cmp-th { padding: 10px 8px; text-align: center; border-bottom: 2px solid #003469; vertical-align: bottom; }
+  .cmp-th-label { text-align: left; color: #6b7f94; font-weight: 600; }
+  .cmp-th-name { color: #1a1a2e; font-weight: 600; line-height: 1.25; }
+  .cmp-th-sub { color: #8893a8; font-size: 9px; font-weight: 400; margin-top: 3px; }
+  .cmp-label { padding: 8px; color: #6b7f94; border-bottom: 1px solid #f0f0f0; }
+  .cmp-td { padding: 8px; text-align: right; border-bottom: 1px solid #f0f0f0; font-weight: 500; }
+  .cmp-best { color: #b5892a; font-weight: 700; }
+  .cmp-note { color: #8893a8; font-size: 10px; margin-top: 10px; }
+
+  /* Dashboard SVG */
+  .chart-block { margin-bottom: 28px; page-break-inside: avoid; }
+  .chart-title { font-size: 14px !important; color: #003469 !important; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid #e8e8e8; display: block !important; }
+  .chart-print { width: 100%; }
+  .chart-print svg { width: 100% !important; height: auto !important; max-height: 280px; display: block; }
+
+  /* Cenários */
+  .cenario-section { margin-bottom: 36px; border: 1px solid #e0e4ed; border-radius: 8px; padding: 20px; page-break-inside: avoid; }
   .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
   .kpi { background: #f4f6fb; border-radius: 6px; padding: 10px 12px; }
   .kpi-label { color: #6b7f94; font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
@@ -119,7 +232,7 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
   .parcelas-table .tipo-obra { color: #2a5b9e; }
   .parcelas-table .tipo-chaves { color: #1a7a45; font-weight: 600; }
 
-  .gloss-item { margin-bottom: 16px; }
+  .gloss-item { margin-bottom: 16px; page-break-inside: avoid; }
   .gloss-item strong { color: #003469; font-size: 13px; display: block; margin-bottom: 4px; }
   .gloss-item p { color: #4a5568; line-height: 1.6; }
 
@@ -148,12 +261,31 @@ export function printPdf(estudo: Estudo, clienteCodigo: string): void {
 </div>
 
 <div class="page">
-  <h2>Resumo Executivo</h2>
+  <h2>Índice</h2>
+  <ul class="toc-list">
+    ${sections.map(s => `<li class="toc-item"><span class="toc-num">${s.num}</span><span class="toc-title">${s.title}</span></li>`).join('')}
+  </ul>
+</div>
+
+<div class="page">
+  <h2>1. Comparativo Numérico</h2>
+  ${comparativoTableHtml(estudo.cenarios, resultados)}
+</div>
+
+${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? `
+<div class="page">
+  <h2>2. Dashboard Visual</h2>
+  ${dashboardHtml(opts.dashboardCharts)}
+</div>
+` : ''}
+
+<div class="page">
+  <h2>${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '3' : '2'}. Cenários Detalhados</h2>
   ${estudo.cenarios.map((c, i) => cenarioSection(c, resultados[i], estudo.taxaDescontoVPL)).join('')}
 </div>
 
 <div class="page">
-  <h2>Glossario de Indicadores</h2>
+  <h2>${opts.dashboardCharts && opts.dashboardCharts.length > 0 ? '4' : '3'}. Glossário de Indicadores</h2>
   ${glossarioHtml()}
 </div>
 
