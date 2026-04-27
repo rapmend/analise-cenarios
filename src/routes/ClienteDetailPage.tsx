@@ -94,7 +94,7 @@ export default function ClienteDetailPage() {
                     <p className="text-white font-medium truncate">{e.nome}</p>
                     <p className="text-gray-500 text-xs mt-0.5">
                       {e.cenarios.length} {e.cenarios.length === 1 ? 'cenário' : 'cenários'} ·
-                      Emissão {new Date(e.dataEmissao).toLocaleDateString('pt-BR')}
+                      Emissão {(() => { const [y, m, d] = e.dataEmissao.slice(0, 10).split('-'); return `${d}/${m}/${y}`; })()}
                     </p>
                   </div>
                   <div

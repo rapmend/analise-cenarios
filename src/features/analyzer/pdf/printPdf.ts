@@ -110,7 +110,10 @@ function glossarioHtml(): string {
 
 export function printPdf(estudo: Estudo, clienteCodigo: string, _opts: PrintOptions = {}): void {
   const resultados = estudo.cenarios.map((c) => calcular(c, estudo.taxaDescontoVPL));
-  const dataEmissao = new Date(estudo.dataEmissao).toLocaleDateString('pt-BR');
+  // dataEmissao chega como 'YYYY-MM-DD' do <input type="date">. Parsear com new Date() o trata
+  // como UTC midnight, deslocando 1 dia em fusos negativos. Formatamos manualmente em local time.
+  const [yyyy, mm, dd] = estudo.dataEmissao.slice(0, 10).split('-');
+  const dataEmissao = `${dd}/${mm}/${yyyy}`;
 
   const benchmark = estudo.benchmark;
   const irText =
