@@ -7,10 +7,14 @@ export interface PontoSerie {
   capitalAplicado: number;
   posicaoLiquida: number;
   patrimonio: number;
-  /** Valor da aplicação no mês m: BRUTO durante a operação, LÍQUIDO (pós-IR) no mês final */
+  /** Valor BRUTO da aplicação no mês m (juros compostos contínuos, sem IR — IR só na realização) */
   valorAplicacao: number;
-  /** Resultado da aplicação = valorAplicacao − capitalAplicado (nominal) */
+  /** Resultado bruto da aplicação = valorAplicacao − capitalAplicado */
   posicaoFinanceira: number;
+  /** Valor LÍQUIDO se resgatado hipoteticamente neste mês (IR por tranche; visualização only) */
+  valorAplicacaoLiq: number;
+  /** Resultado líquido se resgatado neste mês = valorAplicacaoLiq − capitalAplicado */
+  posicaoFinanceiraLiq: number;
 }
 
 /**
@@ -28,8 +32,9 @@ function irRF(prazoMeses: number): number {
 /**
  * @param benchmarkIR 'regressiva' = tabela regressiva de renda fixa;
  *                    number = alíquota fixa (0–1; use 0 para isento).
- *                    IR é aplicado APENAS no mês final da operação (m === n),
- *                    refletindo o resgate real — durante a operação o valor é bruto.
+ *                    A trilha BRUTA (valorAplicacao) preserva a capitalização sem IR.
+ *                    A trilha LÍQUIDA (valorAplicacaoLiq) calcula IR por tranche no mês m
+ *                    como se o resgate ocorresse naquele mês — para fins de visualização.
  */
 export function serieTemporal(
   c: Cenario,
@@ -86,28 +91,26 @@ export function serieTemporal(
     const patrimonio = valorVenda - ir;
     const posicaoLiquida = patrimonio - capitalAplicado;
 
-    // Valor da aplicação financeira no mês m.
-    // Durante a operação (m < n): BRUTO compostado.
-    // No mês final (m === n): IR aplicado por tranche (regressivo ou flat) sobre o LUCRO.
-    const isFinal = m === n;
+    // Trilha BRUTA: capitalização contínua sem IR. IR só seria pago na realização (resgate);
+    // não antecipar IR preserva a base de juro composto como ocorre na prática.
+    // Trilha LÍQUIDA: para visualização "se resgatasse neste mês", IR por tranche conforme prazo.
     let valorAplicacao = 0;
+    let valorAplicacaoLiq = 0;
     for (let t = 0; t <= m; t++) {
       if (pagamentoPorMes[t] > 0) {
         const prazo = m - t;
         const grosso = pagamentoPorMes[t] * Math.pow(1 + rm, prazo);
-        if (isFinal) {
-          const ganho = grosso - pagamentoPorMes[t];
-          const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
-          const irTranche = ganho > 0 ? ganho * aliq : 0;
-          valorAplicacao += grosso - irTranche;
-        } else {
-          valorAplicacao += grosso;
-        }
+        const ganho = grosso - pagamentoPorMes[t];
+        const aliq = benchmarkIR === 'regressiva' ? irRF(prazo) : benchmarkIR;
+        const irTranche = ganho > 0 ? ganho * aliq : 0;
+        valorAplicacao += grosso;
+        valorAplicacaoLiq += grosso - irTranche;
       }
     }
     const posicaoFinanceira = valorAplicacao - capitalAplicado;
+    const posicaoFinanceiraLiq = valorAplicacaoLiq - capitalAplicado;
 
-    serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, valorAplicacao, posicaoFinanceira });
+    serie.push({ mes: m, valorImovel, capitalAplicado, posicaoLiquida, patrimonio, valorAplicacao, posicaoFinanceira, valorAplicacaoLiq, posicaoFinanceiraLiq });
   }
   return serie;
 }

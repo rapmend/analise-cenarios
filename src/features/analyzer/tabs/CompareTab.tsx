@@ -9,15 +9,15 @@ interface Props {
 }
 
 const ROWS = [
-  { label: 'Valor do Imovel',     key: 'valorImovel',     fmt: 'moeda0', source: 'cenario', best: false },
-  { label: 'Valorizacao Anual',   key: 'valorizAnual',    fmt: 'pct',    source: 'cenario', best: false },
-  { label: 'Capital Aplicado',    key: 'valorInvestido',  fmt: 'moeda0', source: 'resultado', best: false },
-  { label: 'Valor Futuro',        key: 'valorFuturo',     fmt: 'moeda0', source: 'resultado', best: false },
-  { label: 'Lucro Bruto',         key: 'lucroBruto',      fmt: 'moeda0', source: 'resultado', best: true  },
-  { label: 'Lucro Liquido',       key: 'lucroLiquido',    fmt: 'moeda0', source: 'resultado', best: true  },
-  { label: 'ROI Total',           key: 'roi',             fmt: 'pct',    source: 'resultado', best: true  },
-  { label: 'VPL',                 key: 'vpl',             fmt: 'moeda0', source: 'resultado', best: true  },
-  { label: 'TIR (anual)',         key: 'tir',             fmt: 'pct',    source: 'resultado', best: true  },
+  { label: 'Valor do Imovel',     key: 'valorImovel',     fmt: 'moeda0', source: 'cenario',   best: false, proj: false },
+  { label: 'Valorizacao Anual',   key: 'valorizAnual',    fmt: 'pct',    source: 'cenario',   best: false, proj: false },
+  { label: 'Capital Aplicado',    key: 'valorInvestido',  fmt: 'moeda0', source: 'resultado', best: false, proj: false },
+  { label: 'Valor Futuro',        key: 'valorFuturo',     fmt: 'moeda0', source: 'resultado', best: false, proj: true  },
+  { label: 'Lucro Bruto',         key: 'lucroBruto',      fmt: 'moeda0', source: 'resultado', best: true,  proj: true  },
+  { label: 'Lucro Liquido',       key: 'lucroLiquido',    fmt: 'moeda0', source: 'resultado', best: true,  proj: true  },
+  { label: 'ROI Total',           key: 'roi',             fmt: 'pct',    source: 'resultado', best: true,  proj: true  },
+  { label: 'VPL',                 key: 'vpl',             fmt: 'moeda0', source: 'resultado', best: true,  proj: true  },
+  { label: 'TIR (anual)',         key: 'tir',             fmt: 'pct',    source: 'resultado', best: true,  proj: true  },
 ] as const;
 
 function memoriaLines(c: Cenario, r: Resultado, taxaVPL: number): { label: string; expr: string; result: string }[] {
@@ -126,7 +126,7 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
           </tr>
         </thead>
         <tbody className="divide-y divide-akiva-border/30">
-          {ROWS.map(({ label, key, fmt: fmtTipo, source, best: hasBest }) => {
+          {ROWS.map(({ label, key, fmt: fmtTipo, source, best: hasBest, proj }) => {
             const values = resultados.map((r, i) => {
               const c = cenarios[i];
               return source === 'cenario'
@@ -136,7 +136,10 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
             const best = hasBest ? Math.max(...values) : null;
             return (
               <tr key={key} className="hover:bg-akiva-surface/30 transition-colors">
-                <td className="py-3 px-4 text-gray-400">{label}</td>
+                <td className="py-3 px-4 text-gray-400">
+                  {label}
+                  {proj && <span className="ml-1.5 text-[10px] text-gray-600 italic font-normal">projeção</span>}
+                </td>
                 {values.map((v, i) => {
                   const isBest = best !== null && v === best && values.filter((x) => x === best).length === 1;
                   const formatted = isNaN(v) ? '--' : fmt(v, fmtTipo);

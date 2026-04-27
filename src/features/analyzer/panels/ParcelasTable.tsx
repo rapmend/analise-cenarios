@@ -76,7 +76,7 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
     const headerCols = [
       'Mês', 'Tipo',
       'Vr. Parcela', 'Pagto Acumulado', 'Valor Imóvel', 'Saldo Devedor Imóvel', 'Saldo Líquido Imóvel',
-      ...(showBenchmark ? ['Acumulado Aplicação', 'Lucro Bruto Aplicação'] : []),
+      ...(showBenchmark ? ['Acumulado Aplicação', 'Lucro Líquido Aplicação'] : []),
     ];
     const rows = parcelas.map((p) => {
       const pt = serie?.[p.mes];
@@ -155,8 +155,8 @@ export default function ParcelasTable({ parcelas, serie, benchmarkNome, cenarioN
                 <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Valor Imóvel − corretagem − saldo devedor − IR sobre lucro imobiliário">Saldo Líquido Imóvel</th>
                 {showBenchmark && (
                   <>
-                    <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor bruto compostado da aplicação no mês">Acumulado</th>
-                    <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Acumulado − capital nominal pago = lucro bruto da aplicação">Lucro Bruto</th>
+                    <th className="px-4 py-2 text-right text-gray-400 font-medium border-l border-akiva-border/60" title="Valor bruto compostado da aplicação no mês (IR só é apurado no resgate)">Acumulado</th>
+                    <th className="px-4 py-2 text-right text-gray-400 font-medium" title="Acumulado − capital nominal pago = resultado bruto da aplicação no mês">Resultado Bruto</th>
                   </>
                 )}
               </tr>
