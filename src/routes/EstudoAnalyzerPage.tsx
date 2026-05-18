@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input';
 import DashboardTab from '@/features/analyzer/tabs/DashboardTab';
 import CompareTab from '@/features/analyzer/tabs/CompareTab';
 import CenarioTab from '@/features/analyzer/tabs/CenarioTab';
+import IndicesTab from '@/features/analyzer/tabs/IndicesTab';
 import { printPdf } from '@/features/analyzer/pdf/printPdf';
 import type { Cenario, BenchmarkConfig } from '@/types';
 import { BENCHMARK_DEFAULT } from '@/types';
@@ -191,6 +192,9 @@ export default function EstudoAnalyzerPage() {
             <TabsTrigger value="comparativo" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
               Comparativo
             </TabsTrigger>
+            <TabsTrigger value="indices" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
+              Índices
+            </TabsTrigger>
             {cenarioTabs.map((t) => (
               <TabsTrigger key={t.id} value={t.id} className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs whitespace-nowrap">
                 {t.label}
@@ -213,6 +217,10 @@ export default function EstudoAnalyzerPage() {
           <div className="bg-akiva-surface border border-akiva-border rounded-lg overflow-hidden">
             <CompareTab cenarios={estudo.cenarios} taxaVPL={estudo.taxaDescontoVPL} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="indices">
+          <IndicesTab />
         </TabsContent>
 
         {estudo.cenarios.map((c) => (
