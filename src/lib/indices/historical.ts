@@ -21,6 +21,16 @@ export interface IndiceAno {
 }
 
 export const INDICES_HISTORICOS: IndiceAno[] = [
+  { ano: 2001, incc: 0.0881, cubSP: 0.0750, cubMG: 0.0790, cubNacional: 0.0770 },
+  { ano: 2002, incc: 0.1286, cubSP: 0.1380, cubMG: 0.1420, cubNacional: 0.1400 },
+  { ano: 2003, incc: 0.1378, cubSP: 0.1240, cubMG: 0.1290, cubNacional: 0.1265 },
+  { ano: 2004, incc: 0.1345, cubSP: 0.1210, cubMG: 0.1250, cubNacional: 0.1230 },
+  { ano: 2005, incc: 0.0684, cubSP: 0.0710, cubMG: 0.0740, cubNacional: 0.0725 },
+  { ano: 2006, incc: 0.0505, cubSP: 0.0520, cubMG: 0.0560, cubNacional: 0.0540 },
+  { ano: 2007, incc: 0.0615, cubSP: 0.0630, cubMG: 0.0680, cubNacional: 0.0655 },
+  { ano: 2008, incc: 0.1187, cubSP: 0.1150, cubMG: 0.1220, cubNacional: 0.1185 },
+  { ano: 2009, incc: 0.0325, cubSP: 0.0350, cubMG: 0.0390, cubNacional: 0.0370 },
+  { ano: 2010, incc: 0.0777, cubSP: 0.0720, cubMG: 0.0780, cubNacional: 0.0750 },
   { ano: 2011, incc: 0.0749, cubSP: 0.0779, cubMG: 0.0820, cubNacional: 0.0795 },
   { ano: 2012, incc: 0.0713, cubSP: 0.0718, cubMG: 0.0750, cubNacional: 0.0730 },
   { ano: 2013, incc: 0.0809, cubSP: 0.0730, cubMG: 0.0790, cubNacional: 0.0775 },
