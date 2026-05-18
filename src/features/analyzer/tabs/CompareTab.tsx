@@ -10,6 +10,8 @@ interface Props {
 
 const ROWS = [
   { label: 'Valor do Imovel',     key: 'valorImovel',     fmt: 'moeda0', source: 'cenario',   best: false, proj: false },
+  { label: 'Area',                key: 'areaM2',          fmt: 'area',   source: 'cenario',   best: false, proj: false },
+  { label: 'Custo do m²',         key: 'valorM2',         fmt: 'moeda0', source: 'derivado',  best: false, proj: false },
   { label: 'Valorizacao Anual',   key: 'valorizAnual',    fmt: 'pct',    source: 'cenario',   best: false, proj: false },
   { label: 'Capital Aplicado',    key: 'valorInvestido',  fmt: 'moeda0', source: 'resultado', best: false, proj: false },
   { label: 'Valor Futuro',        key: 'valorFuturo',     fmt: 'moeda0', source: 'resultado', best: false, proj: true  },
@@ -130,11 +132,18 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
           {ROWS.map(({ label, key, fmt: fmtTipo, source, best: hasBest, proj }) => {
             const values = resultados.map((r, i) => {
               const c = cenarios[i];
-              return source === 'cenario'
-                ? (c[key as keyof Cenario] as number)
-                : (r[key as keyof typeof r] as number);
+              if (source === 'cenario') return (c[key as keyof Cenario] as number | undefined) ?? NaN;
+              if (source === 'derivado' && key === 'valorM2') {
+                return c.areaM2 && c.areaM2 > 0 ? c.valorImovel / c.areaM2 : NaN;
+              }
+              return (r[key as keyof typeof r] as number);
             });
-            const best = hasBest ? Math.max(...values) : null;
+            // Pular linhas de área/m² quando nenhum cenário preencheu
+            if ((key === 'areaM2' || key === 'valorM2') && values.every((v) => !Number.isFinite(v))) {
+              return null;
+            }
+            const numericValues = values.filter((v) => Number.isFinite(v));
+            const best = hasBest && numericValues.length ? Math.max(...numericValues) : null;
             return (
               <tr key={key} className="hover:bg-akiva-surface/30 transition-colors">
                 <td className="py-3 px-4 text-gray-400">
@@ -143,7 +152,11 @@ export default function CompareTab({ cenarios, taxaVPL }: Props) {
                 </td>
                 {values.map((v, i) => {
                   const isBest = best !== null && v === best && values.filter((x) => x === best).length === 1;
-                  const formatted = isNaN(v) ? '--' : fmt(v, fmtTipo);
+                  const formatted = !Number.isFinite(v)
+                    ? '--'
+                    : fmtTipo === 'area'
+                    ? `${v.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m²`
+                    : fmt(v, fmtTipo);
                   return (
                     <td
                       key={cenarios[i].id}

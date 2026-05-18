@@ -1,4 +1,4 @@
-import type { Resultado } from '@/types';
+import type { Cenario, Resultado } from '@/types';
 import { fmt } from '@/lib/calc';
 import { GLOSSARIO } from '@/lib/calc';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -47,7 +47,7 @@ function KpiCard({ label, value, glossKey, positive }: KpiProps) {
   );
 }
 
-export default function CenarioMetrics({ resultado, taxaVPL }: { resultado: Resultado; taxaVPL: number }) {
+export default function CenarioMetrics({ resultado, cenario, taxaVPL }: { resultado: Resultado; cenario: Cenario; taxaVPL: number }) {
   const r = resultado;
 
   const cards: KpiProps[] = [
@@ -58,6 +58,11 @@ export default function CenarioMetrics({ resultado, taxaVPL }: { resultado: Resu
     { label: `VPL (${fmt(taxaVPL, 'pct')} a.a.)`, value: fmt(r.vpl, 'moeda0'),     positive: r.vpl >= 0,          glossKey: 'vpl' },
     { label: 'TIR (anual)',                   value: isNaN(r.tir) ? '--' : fmt(r.tir, 'pct'), positive: !isNaN(r.tir) && r.tir >= taxaVPL, glossKey: 'tir' },
   ];
+
+  if (cenario.areaM2 && cenario.areaM2 > 0) {
+    cards.push({ label: 'Area', value: `${cenario.areaM2.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m²` });
+    cards.push({ label: 'Custo do m²', value: fmt(cenario.valorImovel / cenario.areaM2, 'moeda0') });
+  }
 
   if (r.tipo === 'parcelado' && r.saldoFinal > 0.005) {
     cards.push({ label: 'Saldo Devedor na Venda', value: fmt(r.saldoFinal, 'moeda0'), positive: false });

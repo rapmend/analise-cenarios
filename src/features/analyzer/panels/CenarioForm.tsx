@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { fmt } from '@/lib/calc';
 
 const INDEXADORES: Indexador[] = ['INCC', 'IGP-M', 'IPCA', 'CUB', 'Personalizado'];
 
@@ -14,6 +15,7 @@ const baseSchema = z.object({
   nome: z.string().min(1),
   tipo: z.enum(['avista', 'parcelado']),
   valorImovel: z.number().positive(),
+  areaM2: z.number().min(0).optional(),
   valorizAnual: z.number().min(0),
   periodoMeses: z.number().int().positive(),
   corretagem: z.number().min(0),
@@ -125,10 +127,10 @@ export default function CenarioForm({ cenario, onChange, onRemove, canRemove }: 
   const handleTipoChange = (v: 'avista' | 'parcelado') => {
     if (v === cenario.tipo) return;
     if (v === 'avista') {
-      const base: CenarioAvista = { id: cenario.id, nome: cenario.nome, tipo: 'avista', valorImovel: cenario.valorImovel, valorizAnual: cenario.valorizAnual, periodoMeses: cenario.periodoMeses, corretagem: cenario.corretagem, ir: cenario.ir, taxaDesc: cenario.taxaDesc };
+      const base: CenarioAvista = { id: cenario.id, nome: cenario.nome, tipo: 'avista', valorImovel: cenario.valorImovel, areaM2: cenario.areaM2, valorizAnual: cenario.valorizAnual, periodoMeses: cenario.periodoMeses, corretagem: cenario.corretagem, ir: cenario.ir, taxaDesc: cenario.taxaDesc };
       onChange(base);
     } else {
-      const base: CenarioParcelado = { id: cenario.id, nome: cenario.nome, tipo: 'parcelado', valorImovel: cenario.valorImovel, valorizAnual: cenario.valorizAnual, periodoMeses: cenario.periodoMeses, corretagem: cenario.corretagem, ir: cenario.ir, taxaDesc: 0.08, indexador: 'INCC', taxaIndexador: 0.005, tempoObra: 24, pctEntrada: 0.20, pctObra: 0.40 };
+      const base: CenarioParcelado = { id: cenario.id, nome: cenario.nome, tipo: 'parcelado', valorImovel: cenario.valorImovel, areaM2: cenario.areaM2, valorizAnual: cenario.valorizAnual, periodoMeses: cenario.periodoMeses, corretagem: cenario.corretagem, ir: cenario.ir, taxaDesc: 0.08, indexador: 'INCC', taxaIndexador: 0.005, tempoObra: 24, pctEntrada: 0.20, pctObra: 0.40 };
       onChange(base);
     }
   };
@@ -181,6 +183,44 @@ export default function CenarioForm({ cenario, onChange, onRemove, canRemove }: 
           value={watch('valorizAnual')}
           onChange={(v) => { setValue('valorizAnual', v, { shouldDirty: true }); onChange({ ...cenario, valorizAnual: v } as Cenario); }}
         />
+      </div>
+      <div className={row2}>
+        <div className="space-y-1">
+          <Label className="text-gray-400 text-xs">Area do Imovel</Label>
+          <div className="relative">
+            <Input
+              type="number"
+              step="0.01"
+              min="0"
+              value={watch('areaM2') ?? ''}
+              placeholder="Opcional"
+              onChange={(e) => {
+                const raw = e.target.value;
+                const v = raw === '' ? undefined : (parseFloat(raw) || 0);
+                (setValue as (k: string, val: unknown, opts?: unknown) => void)('areaM2', v, { shouldDirty: true });
+                onChange({ ...cenario, areaM2: v } as Cenario);
+              }}
+              className="bg-akiva-navy border-akiva-border text-white pr-9 text-sm focus:border-akiva-gold [appearance:textfield]"
+            />
+            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 text-xs">m²</span>
+          </div>
+        </div>
+        <div className="space-y-1">
+          <Label className="text-gray-400 text-xs">Custo do m² (calculado)</Label>
+          <div className="relative">
+            <Input
+              type="text"
+              readOnly
+              value={(() => {
+                const v = watch('valorImovel') ?? 0;
+                const a = watch('areaM2') ?? 0;
+                if (!a || a <= 0) return '—';
+                return fmt(v / a, 'moeda0');
+              })()}
+              className="bg-akiva-navy border-akiva-border text-white text-sm read-only:opacity-60"
+            />
+          </div>
+        </div>
       </div>
       <div className={row3}>
         <IntInput

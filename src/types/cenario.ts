@@ -5,6 +5,8 @@ interface CenarioBase {
   nome: string;
   tipo: 'avista' | 'parcelado';
   valorImovel: number;
+  /** Área do imóvel em m². Opcional — quando preenchida, R$/m² é exibido. */
+  areaM2?: number;
   valorizAnual: number;
   periodoMeses: number;
   corretagem: number;

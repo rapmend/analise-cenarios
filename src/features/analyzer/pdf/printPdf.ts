@@ -40,6 +40,10 @@ function cenarioSection(c: Cenario, r: Resultado, taxaVPL: number): string {
       </div>
       <div class="premissas">
         <div class="p-row"><span>Valor do Imovel</span><span>${fmtM(c.valorImovel)}</span></div>
+        ${c.areaM2 && c.areaM2 > 0 ? `
+          <div class="p-row"><span>Area</span><span>${c.areaM2.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m²</span></div>
+          <div class="p-row"><span>Custo do m²</span><span>${fmtM(c.valorImovel / c.areaM2)}</span></div>
+        ` : ''}
         <div class="p-row"><span>Valorizacao Anual</span><span>${fmtPct(c.valorizAnual)}</span></div>
         <div class="p-row"><span>Periodo</span><span>${c.periodoMeses} meses</span></div>
         <div class="p-row"><span>Desconto</span><span>${fmtPct(c.taxaDesc)}</span></div>
@@ -56,8 +60,10 @@ function cenarioSection(c: Cenario, r: Resultado, taxaVPL: number): string {
 }
 
 function comparativoTableHtml(cenarios: Cenario[], resultados: Resultado[]): string {
-  const ROWS: Array<{ label: string; key: string; fmt: 'moeda0' | 'pct'; source: 'cenario' | 'resultado'; best: boolean }> = [
+  const ROWS: Array<{ label: string; key: string; fmt: 'moeda0' | 'pct' | 'area'; source: 'cenario' | 'resultado' | 'derivado'; best: boolean }> = [
     { label: 'Valor do Imovel',     key: 'valorImovel',    fmt: 'moeda0', source: 'cenario',   best: false },
+    { label: 'Area',                key: 'areaM2',         fmt: 'area',   source: 'cenario',   best: false },
+    { label: 'Custo do m²',         key: 'valorM2',        fmt: 'moeda0', source: 'derivado',  best: false },
     { label: 'Valorizacao Anual',   key: 'valorizAnual',   fmt: 'pct',    source: 'cenario',   best: false },
     { label: 'Capital Aplicado',    key: 'valorInvestido', fmt: 'moeda0', source: 'resultado', best: false },
     { label: 'Valor Futuro',        key: 'valorFuturo',    fmt: 'moeda0', source: 'resultado', best: false },
@@ -78,14 +84,24 @@ function comparativoTableHtml(cenarios: Cenario[], resultados: Resultado[]): str
   const rows = ROWS.map(({ label, key, fmt: fmtTipo, source, best: hasBest }) => {
     const values = resultados.map((r, i) => {
       const c = cenarios[i];
-      return source === 'cenario'
-        ? (c[key as keyof Cenario] as number)
-        : (r[key as keyof typeof r] as number);
+      if (source === 'cenario') return (c[key as keyof Cenario] as number | undefined) ?? NaN;
+      if (source === 'derivado' && key === 'valorM2') {
+        return c.areaM2 && c.areaM2 > 0 ? c.valorImovel / c.areaM2 : NaN;
+      }
+      return (r[key as keyof typeof r] as number);
     });
-    const best = hasBest ? Math.max(...values) : null;
+    if ((key === 'areaM2' || key === 'valorM2') && values.every((v) => !Number.isFinite(v))) {
+      return '';
+    }
+    const numericValues = values.filter((v) => Number.isFinite(v));
+    const best = hasBest && numericValues.length ? Math.max(...numericValues) : null;
     const tds = values.map((v) => {
       const isBest = best !== null && v === best && values.filter(x => x === best).length === 1;
-      const formatted = isNaN(v) ? '--' : fmt(v, fmtTipo);
+      const formatted = !Number.isFinite(v)
+        ? '--'
+        : fmtTipo === 'area'
+        ? `${v.toLocaleString('pt-BR', { maximumFractionDigits: 2 })} m²`
+        : fmt(v, fmtTipo);
       return `<td class="cmp-td ${isBest ? 'cmp-best' : ''}">${formatted}${isBest ? ' ★' : ''}</td>`;
     }).join('');
     return `<tr><td class="cmp-label">${label}</td>${tds}</tr>`;

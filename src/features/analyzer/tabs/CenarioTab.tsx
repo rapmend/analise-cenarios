@@ -31,7 +31,7 @@ export default function CenarioTab({ cenario, taxaVPL, benchmark, onChange, onRe
   return (
     <div className="space-y-4">
       <CenarioForm cenario={cenario} onChange={onChange} onRemove={onRemove} canRemove={canRemove} />
-      <CenarioMetrics resultado={resultado} taxaVPL={taxaVPL} />
+      <CenarioMetrics resultado={resultado} cenario={cenario} taxaVPL={taxaVPL} />
 
       {resultado.tipo === 'parcelado' && resultado.parcelas.length > 0 && (
         <>
