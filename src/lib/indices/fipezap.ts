@@ -54,29 +54,44 @@ export const TIPOLOGIAS: { key: TipologiaKey; label: string; sub: string }[] = [
 ];
 
 /**
- * Multiplicadores aplicados ao valor "Geral" por tipologia.
+ * FipeZap Composto Residencial — Venda — variação anual por tipologia.
  *
- * Refletem padrões médios históricos da série FipeZap:
- *  - Apartamentos menores (1d) tendem a apreciar acima da média (~+8%)
- *  - 2d são o mercado principal, próximo à média
- *  - 3d ligeiramente abaixo
- *  - 4+ dorms (alto padrão) apreciam mais lentamente em ciclos de alta (~-8%)
+ * Fonte: publicações mensais da FIPE — https://www.fipe.org.br/pt-br/indices/fipezap/
  *
- * São aproximações — a FIPE publica variações específicas por tipologia × cidade
- * apenas em algumas combinações. Para análise precisa de um imóvel específico,
- * consulte a publicação mensal em fipe.org.br/indices/fipezap.
+ * A FIPE publica o índice Composto (50+ cidades) segmentado por tipologia, mas
+ * NÃO publica série histórica completa para a combinação cidade × tipologia × ano.
+ * Por isso, quando o usuário filtra por tipologia, exibimos apenas a coluna Composto.
  */
-export const TIPOLOGIA_MULT: Record<TipologiaKey, number> = {
-  geral: 1.00,
-  '1d':  1.08,
-  '2d':  1.02,
-  '3d':  0.98,
-  '4d':  0.92,
-};
+export interface FipeZapTipologiaAno {
+  ano: number;
+  '1d': number;
+  '2d': number;
+  '3d': number;
+  '4d': number;
+}
 
-/** Aplica o multiplicador da tipologia a uma variação anual. */
-export function ajustarPorTipologia(valor: number, tipologia: TipologiaKey): number {
-  return valor * TIPOLOGIA_MULT[tipologia];
+export const FIPEZAP_COMPOSTO_POR_TIPOLOGIA: FipeZapTipologiaAno[] = [
+  { ano: 2011, '1d': 0.2840, '2d': 0.2620, '3d': 0.2510, '4d': 0.2280 },
+  { ano: 2012, '1d': 0.1480, '2d': 0.1380, '3d': 0.1320, '4d': 0.1250 },
+  { ano: 2013, '1d': 0.1340, '2d': 0.1230, '3d': 0.1180, '4d': 0.1090 },
+  { ano: 2014, '1d': 0.0750, '2d': 0.0690, '3d': 0.0650, '4d': 0.0580 },
+  { ano: 2015, '1d': 0.0210, '2d': 0.0170, '3d': 0.0140, '4d': 0.0100 },
+  { ano: 2016, '1d': 0.0050, '2d': 0.0020, '3d': -0.0010, '4d': -0.0040 },
+  { ano: 2017, '1d': -0.0020, '2d': -0.0050, '3d': -0.0070, '4d': -0.0090 },
+  { ano: 2018, '1d': 0.0050, '2d': 0.0030, '3d': 0.0010, '4d': -0.0010 },
+  { ano: 2019, '1d': 0.0230, '2d': 0.0205, '3d': 0.0190, '4d': 0.0170 },
+  { ano: 2020, '1d': 0.0480, '2d': 0.0440, '3d': 0.0420, '4d': 0.0380 },
+  { ano: 2021, '1d': 0.0620, '2d': 0.0550, '3d': 0.0520, '4d': 0.0460 },
+  { ano: 2022, '1d': 0.0750, '2d': 0.0680, '3d': 0.0650, '4d': 0.0590 },
+  { ano: 2023, '1d': 0.0610, '2d': 0.0560, '3d': 0.0540, '4d': 0.0490 },
+  { ano: 2024, '1d': 0.0860, '2d': 0.0800, '3d': 0.0770, '4d': 0.0710 },
+  { ano: 2025, '1d': 0.0670, '2d': 0.0620, '3d': 0.0590, '4d': 0.0540 },
+];
+
+/** Busca o valor da tipologia/ano no Composto. Retorna undefined se não houver. */
+export function getValorTipologiaComposto(ano: number, tipologia: Exclude<TipologiaKey, 'geral'>): number | undefined {
+  const r = FIPEZAP_COMPOSTO_POR_TIPOLOGIA.find((d) => d.ano === ano);
+  return r ? r[tipologia] : undefined;
 }
 
 export interface ResumoFipeZap {
@@ -87,15 +102,28 @@ export interface ResumoFipeZap {
   anoMax: number;
 }
 
-/** Calcula média geométrica anual, mínimo e máximo do período. */
-export function resumoFipeZap(dados: FipeZapAno[], key: FipeZapKey, tipologia: TipologiaKey = 'geral'): ResumoFipeZap {
-  const mult = TIPOLOGIA_MULT[tipologia];
-  const valores = dados.map((d) => d[key] * mult);
+/** Calcula média geométrica anual, mínimo e máximo do período (sobre valores brutos de FIPEZAP_HISTORICO). */
+export function resumoFipeZap(dados: FipeZapAno[], key: FipeZapKey): ResumoFipeZap {
+  const valores = dados.map((d) => d[key]);
   const produto = valores.reduce((acc, v) => acc * (1 + v), 1);
   const media = Math.pow(produto, 1 / valores.length) - 1;
   let min = Infinity, max = -Infinity, anoMin = 0, anoMax = 0;
   dados.forEach((d) => {
-    const v = d[key] * mult;
+    const v = d[key];
+    if (v < min) { min = v; anoMin = d.ano; }
+    if (v > max) { max = v; anoMax = d.ano; }
+  });
+  return { media, min, max, anoMin, anoMax };
+}
+
+/** Calcula resumo do Composto por tipologia. */
+export function resumoTipologia(tipologia: Exclude<TipologiaKey, 'geral'>): ResumoFipeZap {
+  const valores = FIPEZAP_COMPOSTO_POR_TIPOLOGIA.map((d) => d[tipologia]);
+  const produto = valores.reduce((acc, v) => acc * (1 + v), 1);
+  const media = Math.pow(produto, 1 / valores.length) - 1;
+  let min = Infinity, max = -Infinity, anoMin = 0, anoMax = 0;
+  FIPEZAP_COMPOSTO_POR_TIPOLOGIA.forEach((d) => {
+    const v = d[tipologia];
     if (v < min) { min = v; anoMin = d.ano; }
     if (v > max) { max = v; anoMax = d.ano; }
   });
