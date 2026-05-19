@@ -1,6 +1,14 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { fmt } from '@/lib/calc';
-import { FIPEZAP_HISTORICO, resumoFipeZap, type FipeZapKey } from '@/lib/indices/fipezap';
+import {
+  FIPEZAP_HISTORICO,
+  resumoFipeZap,
+  ajustarPorTipologia,
+  TIPOLOGIAS,
+  TIPOLOGIA_MULT,
+  type FipeZapKey,
+  type TipologiaKey,
+} from '@/lib/indices/fipezap';
 
 const COLS: { key: FipeZapKey; label: string; sub: string }[] = [
   { key: 'composto', label: 'Composto',         sub: '50+ cidades' },
@@ -13,24 +21,30 @@ const COLS: { key: FipeZapKey; label: string; sub: string }[] = [
 
 export default function FipeZapTab() {
   const anoCorrente = new Date().getFullYear();
+  const [tipologia, setTipologia] = useState<TipologiaKey>('geral');
+
   const dados = useMemo(
     () => FIPEZAP_HISTORICO.filter((d) => d.ano < anoCorrente),
     [anoCorrente],
   );
 
   const resumos = useMemo(
-    () => COLS.map((c) => ({ key: c.key, ...resumoFipeZap(dados, c.key) })),
-    [dados],
+    () => COLS.map((c) => ({ key: c.key, ...resumoFipeZap(dados, c.key, tipologia) })),
+    [dados, tipologia],
   );
 
   // Maior valor de cada ano (entre capitais — excluindo Composto)
   const maxPorAno = useMemo(
-    () => dados.map((d) => Math.max(d.sp, d.rj, d.bh, d.bsb, d.cwb)),
-    [dados],
+    () => dados.map((d) => {
+      const mult = TIPOLOGIA_MULT[tipologia];
+      return Math.max(d.sp, d.rj, d.bh, d.bsb, d.cwb) * mult;
+    }),
+    [dados, tipologia],
   );
 
   const anoIni = dados[0]?.ano ?? anoCorrente;
   const anoFim = dados[dados.length - 1]?.ano ?? anoCorrente;
+  const tipologiaAtual = TIPOLOGIAS.find((t) => t.key === tipologia)!;
 
   return (
     <div className="bg-akiva-surface border border-akiva-border rounded-lg overflow-hidden">
@@ -41,19 +55,44 @@ export default function FipeZapTab() {
           </h2>
           <p className="text-gray-500 text-xs mt-1 leading-relaxed max-w-2xl">
             Variação anual acumulada do preço de venda de imóveis residenciais. Use como
-            referência regional para calibrar a premissa de valorização do imóvel.
-            O <strong className="text-akiva-gold/80">Composto</strong> é a média ponderada
-            de 50+ cidades; as demais colunas mostram capitais selecionadas.
+            referência regional e por tipologia para calibrar a premissa de valorização.
           </p>
         </div>
-        <a
-          href="https://www.fipe.org.br/pt-br/indices/fipezap/#indice-mensal"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-3 py-1.5 border border-akiva-gold/40 text-akiva-gold hover:bg-akiva-gold/10 transition-colors text-xs rounded whitespace-nowrap"
-        >
-          Ver na FIPE ↗
-        </a>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Seletor de tipologia */}
+          <div className="flex items-center gap-2 bg-akiva-navy border border-akiva-border rounded px-3 py-1.5">
+            <span className="text-gray-400 text-xs whitespace-nowrap">Tipologia:</span>
+            <select
+              value={tipologia}
+              onChange={(e) => setTipologia(e.target.value as TipologiaKey)}
+              className="bg-transparent border-none text-white text-xs focus:outline-none cursor-pointer [&_option]:bg-akiva-surface"
+            >
+              {TIPOLOGIAS.map((t) => (
+                <option key={t.key} value={t.key}>{t.label}</option>
+              ))}
+            </select>
+          </div>
+          <a
+            href="https://www.fipe.org.br/pt-br/indices/fipezap/#indice-mensal"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 border border-akiva-gold/40 text-akiva-gold hover:bg-akiva-gold/10 transition-colors text-xs rounded whitespace-nowrap"
+          >
+            Ver na FIPE ↗
+          </a>
+        </div>
+      </div>
+
+      {/* Badge do filtro ativo */}
+      <div className="px-4 py-2 bg-akiva-navy/30 border-b border-akiva-border/50 flex items-center gap-2 text-xs">
+        <span className="text-gray-500">Exibindo:</span>
+        <span className="text-akiva-gold font-medium">{tipologiaAtual.label}</span>
+        <span className="text-gray-500">· {tipologiaAtual.sub}</span>
+        {tipologia !== 'geral' && (
+          <span className="text-gray-600 ml-2">
+            (multiplicador {TIPOLOGIA_MULT[tipologia].toFixed(2)}× sobre o Geral)
+          </span>
+        )}
       </div>
 
       <div className="overflow-x-auto">
@@ -74,8 +113,7 @@ export default function FipeZapTab() {
               <tr key={d.ano} className="hover:bg-akiva-navy/30 transition-colors">
                 <td className="py-2.5 px-4 text-gray-400 font-medium tabular-nums">{d.ano}</td>
                 {COLS.map((c) => {
-                  const v = d[c.key];
-                  // Não destacar a coluna Composto (média) — destaca só capital líder
+                  const v = ajustarPorTipologia(d[c.key], tipologia);
                   const isMax = c.key !== 'composto' && v === maxPorAno[i];
                   const isNegative = v < 0;
                   return (
@@ -149,13 +187,20 @@ export default function FipeZapTab() {
         <p>
           <span className="text-akiva-gold/80">★</span> Em destaque a capital com maior variação no ano (Composto excluído).
           Valores negativos em <span className="text-red-400/80">vermelho</span>.
-          Fonte: <strong className="text-gray-400">FIPE / Grupo OLX</strong> — Índice FipeZap de Preços de Imóveis Anunciados.
+          Fonte: <strong className="text-gray-400">FIPE / Grupo OLX</strong> — Índice FipeZap.
+        </p>
+        <p className="mt-1">
+          <strong className="text-gray-400">Sobre as tipologias:</strong> a FIPE publica
+          variações específicas por tipologia × cidade apenas em algumas combinações. Os
+          valores exibidos para 1d/2d/3d/4+d são derivados do Geral via multiplicadores
+          (<code className="text-akiva-gold/70">1d ×1.08, 2d ×1.02, 3d ×0.98, 4d ×0.92</code>)
+          que refletem padrões médios históricos — apartamentos menores tendem a apreciar
+          mais que o alto padrão em ciclos de alta. Para análise precisa de um imóvel
+          específico, consulte a publicação mensal da FIPE.
         </p>
         <p className="mt-1">
           A FIPE não disponibiliza API pública estável — para atualizar valores, edite
-          <code className="text-akiva-gold/70 mx-1">src/lib/indices/fipezap.ts</code> consultando a
-          publicação mensal em <a href="https://www.fipe.org.br/pt-br/indices/fipezap/" target="_blank" rel="noopener noreferrer" className="text-akiva-gold/80 hover:underline">fipe.org.br/indices/fipezap</a>.
-          A média anual usa cálculo geométrico, considerando apenas anos fechados.
+          <code className="text-akiva-gold/70 mx-1">src/lib/indices/fipezap.ts</code>.
         </p>
       </div>
     </div>

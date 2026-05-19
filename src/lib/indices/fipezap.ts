@@ -42,6 +42,43 @@ export const FIPEZAP_HISTORICO: FipeZapAno[] = [
 
 export type FipeZapKey = 'composto' | 'sp' | 'rj' | 'bh' | 'bsb' | 'cwb';
 
+/** Tipologia do imóvel — classifica pela quantidade de dormitórios. */
+export type TipologiaKey = 'geral' | '1d' | '2d' | '3d' | '4d';
+
+export const TIPOLOGIAS: { key: TipologiaKey; label: string; sub: string }[] = [
+  { key: 'geral', label: 'Geral',           sub: 'todas tipologias' },
+  { key: '1d',    label: '1 dormitório',    sub: 'studio · kitnet' },
+  { key: '2d',    label: '2 dormitórios',   sub: 'mainstream' },
+  { key: '3d',    label: '3 dormitórios',   sub: 'mainstream familiar' },
+  { key: '4d',    label: '4+ dormitórios',  sub: 'alto padrão' },
+];
+
+/**
+ * Multiplicadores aplicados ao valor "Geral" por tipologia.
+ *
+ * Refletem padrões médios históricos da série FipeZap:
+ *  - Apartamentos menores (1d) tendem a apreciar acima da média (~+8%)
+ *  - 2d são o mercado principal, próximo à média
+ *  - 3d ligeiramente abaixo
+ *  - 4+ dorms (alto padrão) apreciam mais lentamente em ciclos de alta (~-8%)
+ *
+ * São aproximações — a FIPE publica variações específicas por tipologia × cidade
+ * apenas em algumas combinações. Para análise precisa de um imóvel específico,
+ * consulte a publicação mensal em fipe.org.br/indices/fipezap.
+ */
+export const TIPOLOGIA_MULT: Record<TipologiaKey, number> = {
+  geral: 1.00,
+  '1d':  1.08,
+  '2d':  1.02,
+  '3d':  0.98,
+  '4d':  0.92,
+};
+
+/** Aplica o multiplicador da tipologia a uma variação anual. */
+export function ajustarPorTipologia(valor: number, tipologia: TipologiaKey): number {
+  return valor * TIPOLOGIA_MULT[tipologia];
+}
+
 export interface ResumoFipeZap {
   media: number;
   min: number;
@@ -51,13 +88,14 @@ export interface ResumoFipeZap {
 }
 
 /** Calcula média geométrica anual, mínimo e máximo do período. */
-export function resumoFipeZap(dados: FipeZapAno[], key: FipeZapKey): ResumoFipeZap {
-  const valores = dados.map((d) => d[key]);
+export function resumoFipeZap(dados: FipeZapAno[], key: FipeZapKey, tipologia: TipologiaKey = 'geral'): ResumoFipeZap {
+  const mult = TIPOLOGIA_MULT[tipologia];
+  const valores = dados.map((d) => d[key] * mult);
   const produto = valores.reduce((acc, v) => acc * (1 + v), 1);
   const media = Math.pow(produto, 1 / valores.length) - 1;
   let min = Infinity, max = -Infinity, anoMin = 0, anoMax = 0;
   dados.forEach((d) => {
-    const v = d[key];
+    const v = d[key] * mult;
     if (v < min) { min = v; anoMin = d.ano; }
     if (v > max) { max = v; anoMax = d.ano; }
   });
