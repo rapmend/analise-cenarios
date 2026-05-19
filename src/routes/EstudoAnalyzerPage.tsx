@@ -230,7 +230,7 @@ export default function EstudoAnalyzerPage() {
               key={t.id}
               value={t.id}
               title={t.label}
-              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-[11px] leading-tight h-auto py-1.5 px-3 max-w-[160px] whitespace-normal"
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-[11px] leading-tight h-auto py-1.5 px-3 min-w-[120px] max-w-[240px] whitespace-normal"
             >
               <span className="line-clamp-2 text-center">{t.label}</span>
             </TabsTrigger>
