@@ -7,6 +7,7 @@ import AppShell from '@/components/AppShell';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DashboardIcon, BarChartIcon, ActivityLogIcon, HomeIcon } from '@radix-ui/react-icons';
 import DashboardTab from '@/features/analyzer/tabs/DashboardTab';
 import CompareTab from '@/features/analyzer/tabs/CompareTab';
 import CenarioTab from '@/features/analyzer/tabs/CenarioTab';
@@ -97,40 +98,78 @@ export default function EstudoAnalyzerPage() {
         { label: estudo.nome },
       ]}
     >
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
       {/* Top bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-4">
+      <div className="flex flex-wrap items-start gap-3 mb-4">
         <div className="flex-1 min-w-0">
           <h1 className="font-serif text-akiva-gold text-2xl font-medium truncate">{estudo.nome}</h1>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
-            <span className="text-gray-400 text-xs whitespace-nowrap">Taxa VPL/TIR</span>
-            <Input
-              type="number"
-              step="0.5"
-              value={+(estudo.taxaDescontoVPL * 100).toFixed(2)}
-              onChange={(e) => handleTaxaVPL(parseFloat(e.target.value) / 100 || 0)}
-              className="bg-transparent border-none text-white text-sm w-16 p-0 focus-visible:ring-0 text-right [appearance:textfield]"
-            />
-            <span className="text-gray-500 text-xs">% a.a.</span>
+        <div className="flex flex-col items-end gap-2">
+          <div className="flex items-center gap-3 flex-wrap justify-end">
+            <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
+              <span className="text-gray-400 text-xs whitespace-nowrap">Taxa VPL/TIR</span>
+              <Input
+                type="number"
+                step="0.5"
+                value={+(estudo.taxaDescontoVPL * 100).toFixed(2)}
+                onChange={(e) => handleTaxaVPL(parseFloat(e.target.value) / 100 || 0)}
+                className="bg-transparent border-none text-white text-sm w-16 p-0 focus-visible:ring-0 text-right [appearance:textfield]"
+              />
+              <span className="text-gray-500 text-xs">% a.a.</span>
+            </div>
+            <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
+              <span className="text-gray-400 text-xs whitespace-nowrap">Emissao</span>
+              <Input
+                type="date"
+                value={estudo.dataEmissao}
+                onChange={(e) => handleDataEmissao(e.target.value)}
+                className="bg-transparent border-none text-white text-xs w-32 p-0 focus-visible:ring-0 [color-scheme:dark]"
+              />
+            </div>
+            <Button
+              onClick={handlePrint}
+              variant="outline"
+              size="sm"
+              className="border-akiva-gold/40 text-akiva-gold hover:bg-akiva-gold/10 text-xs"
+            >
+              Gerar PDF
+            </Button>
           </div>
-          <div className="flex items-center gap-2 bg-akiva-surface border border-akiva-border rounded px-3 py-1.5">
-            <span className="text-gray-400 text-xs whitespace-nowrap">Emissao</span>
-            <Input
-              type="date"
-              value={estudo.dataEmissao}
-              onChange={(e) => handleDataEmissao(e.target.value)}
-              className="bg-transparent border-none text-white text-xs w-32 p-0 focus-visible:ring-0 [color-scheme:dark]"
-            />
-          </div>
-          <Button
-            onClick={handlePrint}
-            variant="outline"
-            size="sm"
-            className="border-akiva-gold/40 text-akiva-gold hover:bg-akiva-gold/10 text-xs"
-          >
-            Gerar PDF
-          </Button>
+          {/* Section tabs (icon-only) */}
+          <TabsList className="bg-akiva-surface border border-akiva-border h-auto p-0.5 gap-0.5">
+            <TabsTrigger
+              value="dashboard"
+              title="Dashboard"
+              aria-label="Dashboard"
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 hover:text-gray-200 px-2.5 py-1.5 h-auto"
+            >
+              <DashboardIcon className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger
+              value="comparativo"
+              title="Comparativo"
+              aria-label="Comparativo"
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 hover:text-gray-200 px-2.5 py-1.5 h-auto"
+            >
+              <BarChartIcon className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger
+              value="indices"
+              title="Índices"
+              aria-label="Índices"
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 hover:text-gray-200 px-2.5 py-1.5 h-auto"
+            >
+              <ActivityLogIcon className="h-4 w-4" />
+            </TabsTrigger>
+            <TabsTrigger
+              value="fipezap"
+              title="FipeZap"
+              aria-label="FipeZap"
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 hover:text-gray-200 px-2.5 py-1.5 h-auto"
+            >
+              <HomeIcon className="h-4 w-4" />
+            </TabsTrigger>
+          </TabsList>
         </div>
       </div>
 
@@ -183,35 +222,27 @@ export default function EstudoAnalyzerPage() {
         ser maior ou menor na prática. Este estudo é uma projeção baseada nos parâmetros informados.
       </p>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
-          <TabsList className="bg-akiva-surface border border-akiva-border flex-shrink-0">
-            <TabsTrigger value="dashboard" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
-              Dashboard
+      {/* Cenário tabs */}
+      <div className="flex flex-wrap items-stretch gap-2 mb-4">
+        <TabsList className="bg-akiva-surface border border-akiva-border flex-wrap h-auto p-0.5 gap-0.5 justify-start">
+          {cenarioTabs.map((t) => (
+            <TabsTrigger
+              key={t.id}
+              value={t.id}
+              title={t.label}
+              className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-[11px] leading-tight h-auto py-1.5 px-3 max-w-[160px] whitespace-normal"
+            >
+              <span className="line-clamp-2 text-center">{t.label}</span>
             </TabsTrigger>
-            <TabsTrigger value="comparativo" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
-              Comparativo
-            </TabsTrigger>
-            <TabsTrigger value="indices" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
-              Índices
-            </TabsTrigger>
-            <TabsTrigger value="fipezap" className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs">
-              FipeZap
-            </TabsTrigger>
-            {cenarioTabs.map((t) => (
-              <TabsTrigger key={t.id} value={t.id} className="data-[state=active]:bg-akiva-blue data-[state=active]:text-akiva-gold text-gray-400 text-xs whitespace-nowrap">
-                {t.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          <button
-            onClick={handleAddCenario}
-            className="flex-shrink-0 px-3 py-1.5 border border-dashed border-akiva-border rounded text-gray-500 hover:text-akiva-gold hover:border-akiva-gold/40 transition-colors text-xs"
-          >
-            + Cenario
-          </button>
-        </div>
+          ))}
+        </TabsList>
+        <button
+          onClick={handleAddCenario}
+          className="flex-shrink-0 px-3 py-1.5 border border-dashed border-akiva-border rounded text-gray-500 hover:text-akiva-gold hover:border-akiva-gold/40 transition-colors text-xs self-start"
+        >
+          + Cenario
+        </button>
+      </div>
 
         <TabsContent value="dashboard">
           <DashboardTab cenarios={estudo.cenarios} taxaVPL={estudo.taxaDescontoVPL} benchmark={benchmark} />
