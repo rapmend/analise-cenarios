@@ -3,8 +3,8 @@ import { fmt } from '@/lib/calc';
 import {
   FIPEZAP_HISTORICO,
   resumoFipeZap,
-  resumoTipologia,
-  getValorTipologiaComposto,
+  resumoCidadeTipologia,
+  getValorCidadeTipologia,
   TIPOLOGIAS,
   type FipeZapKey,
   type TipologiaKey,
@@ -30,9 +30,8 @@ export default function FipeZapTab() {
 
   const resumos = useMemo(
     () => COLS.map((c) => {
-      // Composto recebe o resumo da tipologia selecionada quando aplicável
-      if (c.key === 'composto' && tipologia !== 'geral') {
-        return { key: c.key, ...resumoTipologia(tipologia) };
+      if (tipologia !== 'geral') {
+        return { key: c.key, ...resumoCidadeTipologia(dados, c.key, tipologia) };
       }
       return { key: c.key, ...resumoFipeZap(dados, c.key) };
     }),
@@ -41,8 +40,13 @@ export default function FipeZapTab() {
 
   // Maior valor de cada ano (entre capitais — excluindo Composto)
   const maxPorAno = useMemo(
-    () => dados.map((d) => Math.max(d.sp, d.rj, d.bh, d.bsb, d.cwb)),
-    [dados],
+    () => dados.map((d) => {
+      const vs = ['sp', 'rj', 'bh', 'bsb', 'cwb'].map((c) =>
+        getValorCidadeTipologia(d, c as FipeZapKey, tipologia) ?? -Infinity,
+      );
+      return Math.max(...vs);
+    }),
+    [dados, tipologia],
   );
 
   const anoIni = dados[0]?.ano ?? anoCorrente;
@@ -94,7 +98,7 @@ export default function FipeZapTab() {
         <span className="text-gray-500">· {tipologiaAtual.sub}</span>
         {filtroTipologia && (
           <span className="text-gray-600 ml-2">
-            (FIPE publica esta tipologia apenas no Composto — colunas das capitais ficam vazias)
+            (capitais ajustadas pelo delta tipologia−geral do Composto FIPE no mesmo ano)
           </span>
         )}
       </div>
@@ -117,19 +121,7 @@ export default function FipeZapTab() {
               <tr key={d.ano} className="hover:bg-akiva-navy/30 transition-colors">
                 <td className="py-2.5 px-4 text-gray-400 font-medium tabular-nums">{d.ano}</td>
                 {COLS.map((c) => {
-                  // Composto exibe valor da tipologia escolhida
-                  let v: number | undefined;
-                  if (c.key === 'composto') {
-                    v = filtroTipologia
-                      ? getValorTipologiaComposto(d.ano, tipologia as Exclude<TipologiaKey, 'geral'>)
-                      : d.composto;
-                  } else if (filtroTipologia) {
-                    // FIPE não publica histórico por cidade × tipologia
-                    v = undefined;
-                  } else {
-                    v = d[c.key];
-                  }
-
+                  const v = getValorCidadeTipologia(d, c.key, tipologia);
                   if (v === undefined) {
                     return (
                       <td key={c.key} className="py-2.5 px-4 text-center text-gray-600 tabular-nums">
@@ -137,8 +129,7 @@ export default function FipeZapTab() {
                       </td>
                     );
                   }
-
-                  const isMax = !filtroTipologia && c.key !== 'composto' && v === maxPorAno[i];
+                  const isMax = c.key !== 'composto' && v === maxPorAno[i];
                   const isNegative = v < 0;
                   return (
                     <td
@@ -177,47 +168,31 @@ export default function FipeZapTab() {
                   geométrica · {anoIni}–{anoFim}
                 </span>
               </td>
-              {resumos.map((r) => {
-                // Quando filtro ativo, esconder médias das cidades
-                if (filtroTipologia && r.key !== 'composto') {
-                  return <td key={r.key} className="py-2.5 px-4 text-center text-gray-600 tabular-nums">—</td>;
-                }
-                return (
-                  <td key={r.key} className="py-2.5 px-4 text-center text-akiva-gold font-semibold tabular-nums">
-                    {fmt(r.media, 'pct')}
-                  </td>
-                );
-              })}
+              {resumos.map((r) => (
+                <td key={r.key} className="py-2.5 px-4 text-center text-akiva-gold font-semibold tabular-nums">
+                  {fmt(r.media, 'pct')}
+                </td>
+              ))}
             </tr>
             <tr className="bg-akiva-navy/20">
               <td className="py-2.5 px-4 text-gray-300 font-semibold text-xs uppercase tracking-wider">Mínimo</td>
-              {resumos.map((r) => {
-                if (filtroTipologia && r.key !== 'composto') {
-                  return <td key={r.key} className="py-2.5 px-4 text-center text-gray-600 tabular-nums">—</td>;
-                }
-                return (
-                  <td key={r.key} className="py-2.5 px-4 text-center tabular-nums">
-                    <span className={r.min < 0 ? 'text-red-400/80' : 'text-gray-300'}>
-                      {fmt(r.min, 'pct')}
-                    </span>
-                    <span className="block text-gray-600 text-[10px] font-normal">{r.anoMin}</span>
-                  </td>
-                );
-              })}
+              {resumos.map((r) => (
+                <td key={r.key} className="py-2.5 px-4 text-center tabular-nums">
+                  <span className={r.min < 0 ? 'text-red-400/80' : 'text-gray-300'}>
+                    {fmt(r.min, 'pct')}
+                  </span>
+                  <span className="block text-gray-600 text-[10px] font-normal">{r.anoMin}</span>
+                </td>
+              ))}
             </tr>
             <tr className="bg-akiva-navy/20">
               <td className="py-2.5 px-4 text-gray-300 font-semibold text-xs uppercase tracking-wider">Máximo</td>
-              {resumos.map((r) => {
-                if (filtroTipologia && r.key !== 'composto') {
-                  return <td key={r.key} className="py-2.5 px-4 text-center text-gray-600 tabular-nums">—</td>;
-                }
-                return (
-                  <td key={r.key} className="py-2.5 px-4 text-center text-gray-300 tabular-nums">
-                    {fmt(r.max, 'pct')}
-                    <span className="block text-gray-600 text-[10px] font-normal">{r.anoMax}</span>
-                  </td>
-                );
-              })}
+              {resumos.map((r) => (
+                <td key={r.key} className="py-2.5 px-4 text-center text-gray-300 tabular-nums">
+                  {fmt(r.max, 'pct')}
+                  <span className="block text-gray-600 text-[10px] font-normal">{r.anoMax}</span>
+                </td>
+              ))}
             </tr>
           </tfoot>
         </table>
@@ -231,10 +206,12 @@ export default function FipeZapTab() {
         </p>
         <p className="mt-1">
           <strong className="text-gray-400">Sobre as tipologias:</strong> a FIPE publica
-          mensalmente o índice Composto segmentado por quantidade de dormitórios (1d, 2d, 3d, 4+d),
-          mas <strong>não publica série histórica completa para a matriz cidade × tipologia × ano</strong>.
-          Por isso, ao filtrar por tipologia, exibimos apenas a coluna Composto — as colunas das
-          capitais aparecem vazias.
+          mensalmente o índice Composto segmentado por quantidade de dormitórios (1d, 2d, 3d, 4+d).
+          Como a série histórica completa cidade × tipologia × ano não é divulgada, as capitais
+          são ajustadas pelo <strong>delta (em pontos percentuais) entre a tipologia e o Geral
+          observado no Composto FIPE</strong> daquele ano. Ex.: se em 2024 o Composto Geral subiu
+          7,90% e o 1d subiu 8,60% (delta +0,70pp), aplicamos +0,70pp à variação de cada capital
+          em 2024. O Composto exibe o valor oficial da FIPE.
         </p>
         <p className="mt-1">
           A FIPE não disponibiliza API pública estável — para atualizar valores, edite

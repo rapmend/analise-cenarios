@@ -94,6 +94,62 @@ export function getValorTipologiaComposto(ano: number, tipologia: Exclude<Tipolo
   return r ? r[tipologia] : undefined;
 }
 
+/**
+ * Calcula o valor de uma cidade × tipologia em um ano.
+ *
+ * Como a FIPE não publica série histórica completa cidade × tipologia × ano,
+ * derivamos a partir do delta (em pontos percentuais) que a própria FIPE divulga
+ * no Composto para aquele ano:
+ *
+ *   delta_pp = composto_tipologia − composto_geral
+ *   cidade_tipologia = cidade_geral + delta_pp
+ *
+ * Exemplo (2024): FIPE Composto Geral = 7,90% · Composto 1d = 8,60% → delta = +0,70pp.
+ * Aplicado a SP (geral 7,86%) → SP 1d ≈ 8,56%.
+ *
+ * Esse delta vem direto da publicação mensal da FIPE — não é multiplicador arbitrário.
+ */
+export function getValorCidadeTipologia(
+  d: FipeZapAno,
+  cidade: FipeZapKey,
+  tipologia: TipologiaKey,
+): number | undefined {
+  if (tipologia === 'geral') return d[cidade];
+
+  if (cidade === 'composto') {
+    return getValorTipologiaComposto(d.ano, tipologia);
+  }
+
+  const compostoTipologia = getValorTipologiaComposto(d.ano, tipologia);
+  if (compostoTipologia === undefined) return undefined;
+  const deltaPp = compostoTipologia - d.composto;
+  return d[cidade] + deltaPp;
+}
+
+/** Resumo de uma cidade × tipologia. */
+export function resumoCidadeTipologia(
+  dados: FipeZapAno[],
+  cidade: FipeZapKey,
+  tipologia: TipologiaKey,
+): ResumoFipeZap {
+  const valores: { ano: number; v: number }[] = [];
+  dados.forEach((d) => {
+    const v = getValorCidadeTipologia(d, cidade, tipologia);
+    if (v !== undefined) valores.push({ ano: d.ano, v });
+  });
+  if (valores.length === 0) {
+    return { media: NaN, min: NaN, max: NaN, anoMin: 0, anoMax: 0 };
+  }
+  const produto = valores.reduce((acc, { v }) => acc * (1 + v), 1);
+  const media = Math.pow(produto, 1 / valores.length) - 1;
+  let min = Infinity, max = -Infinity, anoMin = 0, anoMax = 0;
+  valores.forEach(({ ano, v }) => {
+    if (v < min) { min = v; anoMin = ano; }
+    if (v > max) { max = v; anoMax = ano; }
+  });
+  return { media, min, max, anoMin, anoMax };
+}
+
 export interface ResumoFipeZap {
   media: number;
   min: number;
