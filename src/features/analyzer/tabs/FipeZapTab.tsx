@@ -22,6 +22,27 @@ const COLS: { key: FipeZapKey; label: string; sub: string }[] = [
 export default function FipeZapTab() {
   const anoCorrente = new Date().getFullYear();
   const [tipologia, setTipologia] = useState<TipologiaKey>('geral');
+  const [cidadesSel, setCidadesSel] = useState<Set<FipeZapKey>>(
+    () => new Set(COLS.map((c) => c.key)),
+  );
+
+  const toggleCidade = (key: FipeZapKey) => {
+    setCidadesSel((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        if (next.size <= 1) return prev; // mantém ao menos uma coluna
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
+
+  const colsVisiveis = useMemo(
+    () => COLS.filter((c) => cidadesSel.has(c.key)),
+    [cidadesSel],
+  );
 
   const dados = useMemo(
     () => FIPEZAP_HISTORICO.filter((d) => d.ano < anoCorrente),
@@ -29,24 +50,24 @@ export default function FipeZapTab() {
   );
 
   const resumos = useMemo(
-    () => COLS.map((c) => {
+    () => colsVisiveis.map((c) => {
       if (tipologia !== 'geral') {
         return { key: c.key, ...resumoCidadeTipologia(dados, c.key, tipologia) };
       }
       return { key: c.key, ...resumoFipeZap(dados, c.key) };
     }),
-    [dados, tipologia],
+    [dados, tipologia, colsVisiveis],
   );
 
-  // Maior valor de cada ano (entre capitais — excluindo Composto)
+  // Maior valor de cada ano (entre capitais visíveis — excluindo Composto)
   const maxPorAno = useMemo(
     () => dados.map((d) => {
-      const vs = ['sp', 'rj', 'bh', 'bsb', 'cwb'].map((c) =>
-        getValorCidadeTipologia(d, c as FipeZapKey, tipologia) ?? -Infinity,
-      );
-      return Math.max(...vs);
+      const vs = colsVisiveis
+        .filter((c) => c.key !== 'composto')
+        .map((c) => getValorCidadeTipologia(d, c.key, tipologia) ?? -Infinity);
+      return vs.length ? Math.max(...vs) : -Infinity;
     }),
-    [dados, tipologia],
+    [dados, tipologia, colsVisiveis],
   );
 
   const anoIni = dados[0]?.ano ?? anoCorrente;
@@ -91,6 +112,27 @@ export default function FipeZapTab() {
         </div>
       </div>
 
+      {/* Seletor de capitais (multiselect via chips) */}
+      <div className="px-4 py-2.5 bg-akiva-navy/20 border-b border-akiva-border/50 flex items-center gap-2 flex-wrap">
+        <span className="text-gray-500 text-xs whitespace-nowrap mr-1">Capitais:</span>
+        {COLS.map((c) => {
+          const ativo = cidadesSel.has(c.key);
+          return (
+            <button
+              key={c.key}
+              onClick={() => toggleCidade(c.key)}
+              className={`px-2.5 py-1 rounded-full text-[11px] border transition-colors ${
+                ativo
+                  ? 'bg-akiva-gold/15 border-akiva-gold/50 text-akiva-gold'
+                  : 'bg-transparent border-akiva-border text-gray-500 hover:text-gray-300 hover:border-gray-500'
+              }`}
+            >
+              {c.label}
+            </button>
+          );
+        })}
+      </div>
+
       {/* Badge do filtro ativo */}
       <div className="px-4 py-2 bg-akiva-navy/30 border-b border-akiva-border/50 flex items-center gap-2 text-xs flex-wrap">
         <span className="text-gray-500">Exibindo:</span>
@@ -108,7 +150,7 @@ export default function FipeZapTab() {
           <thead>
             <tr className="border-b border-akiva-border">
               <th className="text-left py-3 px-4 text-gray-400 font-medium">Ano</th>
-              {COLS.map((c) => (
+              {colsVisiveis.map((c) => (
                 <th key={c.key} className="text-center py-3 px-4 text-gray-300 font-medium align-bottom">
                   <div className="leading-tight">{c.label}</div>
                   <div className="text-akiva-gold/60 text-[10px] font-normal mt-0.5">{c.sub}</div>
@@ -120,7 +162,7 @@ export default function FipeZapTab() {
             {dados.map((d, i) => (
               <tr key={d.ano} className="hover:bg-akiva-navy/30 transition-colors">
                 <td className="py-2.5 px-4 text-gray-400 font-medium tabular-nums">{d.ano}</td>
-                {COLS.map((c) => {
+                {colsVisiveis.map((c) => {
                   const v = getValorCidadeTipologia(d, c.key, tipologia);
                   if (v === undefined) {
                     return (
@@ -153,7 +195,7 @@ export default function FipeZapTab() {
                   Em curso · manual
                 </div>
               </td>
-              {COLS.map((c) => (
+              {colsVisiveis.map((c) => (
                 <td key={c.key} className="py-2.5 px-4 text-center text-gray-500 tabular-nums">
                   —
                 </td>
