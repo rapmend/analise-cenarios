@@ -17,7 +17,6 @@ const COLS: { key: FipeZapKey; label: string; sub: string }[] = [
   { key: 'bh',       label: 'Belo Horizonte',   sub: 'MG' },
   { key: 'bsb',      label: 'Brasília',         sub: 'DF' },
   { key: 'cwb',      label: 'Curitiba',         sub: 'PR' },
-  { key: 'vix',      label: 'Vitória',          sub: 'ES' },
 ];
 
 export default function FipeZapTab() {
