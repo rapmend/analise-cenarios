@@ -20,27 +20,28 @@ export interface FipeZapAno {
   bh: number;        // Belo Horizonte
   bsb: number;       // Brasília
   cwb: number;       // Curitiba
+  vix: number;       // Vitória
 }
 
 export const FIPEZAP_HISTORICO: FipeZapAno[] = [
-  { ano: 2011, composto: 0.2602, sp: 0.2236, rj: 0.2618, bh: 0.2080, bsb: 0.1620, cwb: 0.1310 },
-  { ano: 2012, composto: 0.1372, sp: 0.1412, rj: 0.1503, bh: 0.1180, bsb: 0.0640, cwb: 0.1290 },
-  { ano: 2013, composto: 0.1225, sp: 0.1240, rj: 0.0747, bh: 0.1620, bsb: 0.0420, cwb: 0.1180 },
-  { ano: 2014, composto: 0.0680, sp: 0.0501, rj: 0.0317, bh: 0.0890, bsb: 0.0210, cwb: 0.0930 },
-  { ano: 2015, composto: 0.0163, sp: 0.0341, rj: 0.0045, bh: 0.0230, bsb: -0.0120, cwb: 0.0410 },
-  { ano: 2016, composto: 0.0010, sp: 0.0080, rj: -0.0320, bh: 0.0050, bsb: -0.0240, cwb: 0.0260 },
-  { ano: 2017, composto: -0.0053, sp: -0.0010, rj: -0.0398, bh: -0.0080, bsb: -0.0310, cwb: 0.0080 },
-  { ano: 2018, composto: 0.0024, sp: 0.0185, rj: -0.0123, bh: 0.0030, bsb: -0.0140, cwb: 0.0190 },
-  { ano: 2019, composto: 0.0202, sp: 0.0312, rj: 0.0067, bh: 0.0210, bsb: 0.0090, cwb: 0.0250 },
-  { ano: 2020, composto: 0.0432, sp: 0.0451, rj: 0.0245, bh: 0.0490, bsb: 0.0310, cwb: 0.0520 },
-  { ano: 2021, composto: 0.0539, sp: 0.0520, rj: 0.0305, bh: 0.0710, bsb: 0.0890, cwb: 0.1180 },
-  { ano: 2022, composto: 0.0671, sp: 0.0782, rj: 0.0654, bh: 0.0805, bsb: 0.0950, cwb: 0.1340 },
-  { ano: 2023, composto: 0.0552, sp: 0.0651, rj: 0.0702, bh: 0.0610, bsb: 0.0410, cwb: 0.0820 },
-  { ano: 2024, composto: 0.0790, sp: 0.0786, rj: 0.0850, bh: 0.0720, bsb: 0.0510, cwb: 0.0680 },
-  { ano: 2025, composto: 0.0610, sp: 0.0598, rj: 0.0650, bh: 0.0590, bsb: 0.0420, cwb: 0.0550 },
+  { ano: 2011, composto: 0.2602, sp: 0.2236, rj: 0.2618, bh: 0.2080, bsb: 0.1620, cwb: 0.1310, vix: 0.1450 },
+  { ano: 2012, composto: 0.1372, sp: 0.1412, rj: 0.1503, bh: 0.1180, bsb: 0.0640, cwb: 0.1290, vix: 0.1080 },
+  { ano: 2013, composto: 0.1225, sp: 0.1240, rj: 0.0747, bh: 0.1620, bsb: 0.0420, cwb: 0.1180, vix: 0.0950 },
+  { ano: 2014, composto: 0.0680, sp: 0.0501, rj: 0.0317, bh: 0.0890, bsb: 0.0210, cwb: 0.0930, vix: 0.0520 },
+  { ano: 2015, composto: 0.0163, sp: 0.0341, rj: 0.0045, bh: 0.0230, bsb: -0.0120, cwb: 0.0410, vix: 0.0080 },
+  { ano: 2016, composto: 0.0010, sp: 0.0080, rj: -0.0320, bh: 0.0050, bsb: -0.0240, cwb: 0.0260, vix: -0.0150 },
+  { ano: 2017, composto: -0.0053, sp: -0.0010, rj: -0.0398, bh: -0.0080, bsb: -0.0310, cwb: 0.0080, vix: -0.0230 },
+  { ano: 2018, composto: 0.0024, sp: 0.0185, rj: -0.0123, bh: 0.0030, bsb: -0.0140, cwb: 0.0190, vix: -0.0050 },
+  { ano: 2019, composto: 0.0202, sp: 0.0312, rj: 0.0067, bh: 0.0210, bsb: 0.0090, cwb: 0.0250, vix: 0.0120 },
+  { ano: 2020, composto: 0.0432, sp: 0.0451, rj: 0.0245, bh: 0.0490, bsb: 0.0310, cwb: 0.0520, vix: 0.0380 },
+  { ano: 2021, composto: 0.0539, sp: 0.0520, rj: 0.0305, bh: 0.0710, bsb: 0.0890, cwb: 0.1180, vix: 0.0550 },
+  { ano: 2022, composto: 0.0671, sp: 0.0782, rj: 0.0654, bh: 0.0805, bsb: 0.0950, cwb: 0.1340, vix: 0.0720 },
+  { ano: 2023, composto: 0.0552, sp: 0.0651, rj: 0.0702, bh: 0.0610, bsb: 0.0410, cwb: 0.0820, vix: 0.0580 },
+  { ano: 2024, composto: 0.0790, sp: 0.0786, rj: 0.0850, bh: 0.0720, bsb: 0.0510, cwb: 0.0680, vix: 0.0750 },
+  { ano: 2025, composto: 0.0610, sp: 0.0598, rj: 0.0650, bh: 0.0590, bsb: 0.0420, cwb: 0.0550, vix: 0.0590 },
 ];
 
-export type FipeZapKey = 'composto' | 'sp' | 'rj' | 'bh' | 'bsb' | 'cwb';
+export type FipeZapKey = 'composto' | 'sp' | 'rj' | 'bh' | 'bsb' | 'cwb' | 'vix';
 
 /** Tipologia do imóvel — classifica pela quantidade de dormitórios. */
 export type TipologiaKey = 'geral' | '1d' | '2d' | '3d' | '4d';
